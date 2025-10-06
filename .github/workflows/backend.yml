@@ -14,7 +14,7 @@ on:
 
 jobs:
     build:
-        runs-on: ubuntu-latest
+        runs-on: self-hosted
 
         services:
             mongodb:
@@ -47,7 +47,7 @@ jobs:
     # Optionally add container publishing to GitHub Container Registry
     publish:
         needs: build
-        runs-on: ubuntu-latest
+        runs-on: self-hosted
         if: github.ref == 'refs/heads/main' # Only publish on main branch pushes
 
         steps:
