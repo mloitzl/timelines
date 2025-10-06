@@ -10,7 +10,7 @@ const eventSchema = new mongoose.Schema({
     required: true,
   },
   payload: {
-    type: String,
+    type: mongoose.Schema.Types.Mixed,
     required: false,
   },
 });

@@ -16,10 +16,18 @@ export const resolvers = {
       _: unknown,
       { eventType, payload }: IngestEventArgs
     ) => {
+      let parsedPayload: any = payload;
+      if (typeof payload === "string") {
+        try {
+          parsedPayload = JSON.parse(payload);
+        } catch (e) {
+          parsedPayload = payload; // fallback to string if not valid JSON
+        }
+      }
       const event = new Event({
         eventType,
         timestamp: new Date().toISOString(),
-        payload,
+        payload: parsedPayload,
       });
       await event.save();
       return event;
