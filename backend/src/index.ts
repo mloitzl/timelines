@@ -27,12 +27,13 @@ async function startServer() {
       process.env.MONGODB_URI || "mongodb://localhost:27017/timelines";
     // const mongoUser = process.env.MONGODB_USER;
     // const mongoPass = process.env.MONGODB_PASS;
-    const mongooseOptions: any = {};
+    // const mongooseOptions: any = {};
     // if (mongoUser && mongoPass) {
     //   mongooseOptions.user = mongoUser;
     //   mongooseOptions.pass = mongoPass;
     // }
-    await mongoose.connect(mongoUri, mongooseOptions);
+    // await mongoose.connect(mongoUri, mongooseOptions);
+    await mongoose.connect(mongoUri);
     console.log("Connected to MongoDB at", mongoUri);
   } catch (error) {
     console.error("Error connecting to MongoDB:", error);
