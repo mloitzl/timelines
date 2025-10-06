@@ -27,7 +27,11 @@ services:
     environment:
       - WATCHTOWER_CLEANUP=true
       - WATCHTOWER_POLL_INTERVAL=300
+      - WATCHTOWER_REGISTRY_AUTH=true
+      - WATCHTOWER_NOTIFICATION_REPORT=false
+      - REGISTRY_AUTH_FILE=/config/config.json
+      - GHCR_USERNAME=${GITHUB_USER}
+      - GHCR_TOKEN=${GHCR_GITHUB_PAT}
     restart: unless-stopped
-
 volumes:
   mongodb_data:
