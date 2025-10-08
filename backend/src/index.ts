@@ -4,19 +4,21 @@ import express from "express";
 import cors from "cors";
 import mongoose from "mongoose";
 import { resolvers } from "./resolvers";
+import GraphQLJSON from "graphql-type-json";
 
 const typeDefs = `
+  scalar JSON
   type Event {
     id: ID!
     eventType: String!
     timestamp: String!
-    payload: String
+    payload: JSON
   }
   type Query {
     events: [Event!]!
   }
   type Mutation {
-    ingestEvent(eventType: String!, payload: String): Event!
+    ingestEvent(eventType: String!, payload: JSON): Event!
   }
 `;
 
@@ -25,14 +27,14 @@ async function startServer() {
   try {
     const mongoUri =
       process.env.MONGODB_URI || "mongodb://localhost:27017/timelines";
-    // const mongoUser = process.env.MONGODB_USER;
-    // const mongoPass = process.env.MONGODB_PASS;
-    // const mongooseOptions: any = {};
-    // if (mongoUser && mongoPass) {
-    //   mongooseOptions.user = mongoUser;
-    //   mongooseOptions.pass = mongoPass;
-    // }
-    // await mongoose.connect(mongoUri, mongooseOptions);
+    const mongoUser = process.env.MONGODB_USER;
+    const mongoPass = process.env.MONGODB_PASS;
+    const mongooseOptions: any = {};
+    if (mongoUser && mongoPass) {
+      mongooseOptions.user = mongoUser;
+      mongooseOptions.pass = mongoPass;
+    }
+    await mongoose.connect(mongoUri, mongooseOptions);
     await mongoose.connect(mongoUri);
     console.log("Connected to MongoDB at", mongoUri);
   } catch (error) {
@@ -43,7 +45,10 @@ async function startServer() {
   const app = express();
   const server = new ApolloServer({
     typeDefs,
-    resolvers,
+    resolvers: {
+      JSON: GraphQLJSON,
+      ...resolvers,
+    },
   });
 
   await server.start();
