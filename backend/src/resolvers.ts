@@ -16,6 +16,7 @@ export const resolvers = {
       _: unknown,
       { eventType, payload }: IngestEventArgs
     ) => {
+      console.log("Ingesting event:", { eventType, payload });
       let parsedPayload: any = payload;
       if (typeof payload === "string") {
         try {
