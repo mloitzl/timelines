@@ -26,7 +26,8 @@ async function startServer() {
   // Connect to MongoDB
   try {
     const mongoUri =
-      process.env.MONGODB_URI || "mongodb://localhost:27017/timelines";
+      process.env.MONGODB_URI ||
+      "mongodb://localhost:27017/timelines?authSource=admin";
     const mongoUser = process.env.MONGODB_USER;
     const mongoPass = process.env.MONGODB_PASS;
     const mongooseOptions: any = {};
