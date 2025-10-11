@@ -13,6 +13,16 @@ services:
     labels:
       - "com.centurylinklabs.watchtower.enable=true"
 
+  timelines-frontend:
+    image: ghcr.io/mloitzl/timelines-frontend:latest
+    ports:
+      - "3000:80"
+    depends_on:
+      - timelines-backend
+    restart: unless-stopped
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+
   mongodb:
     image: mongo:latest
     ports:

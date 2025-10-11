@@ -7,8 +7,12 @@ import {
 } from "relay-runtime";
 import { createClient } from "graphql-ws";
 
+// Use environment variables with fallback to localhost for development
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:4000/graphql";
+const WS_URL = import.meta.env.VITE_WS_URL || "ws://localhost:4000/graphql";
+
 async function fetchGraphQL(params: any, variables: Record<string, unknown>) {
-  const response = await fetch("http://localhost:4000/graphql", {
+  const response = await fetch(API_URL, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -31,7 +35,7 @@ async function fetchGraphQL(params: any, variables: Record<string, unknown>) {
 
 // Create WebSocket client for subscriptions with retry logic
 const wsClient = createClient({
-  url: "ws://localhost:4000/graphql",
+  url: WS_URL,
   retryAttempts: Infinity,
   shouldRetry: () => true,
   connectionParams: async () => {

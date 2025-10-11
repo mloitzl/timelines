@@ -21,6 +21,14 @@ services:
     depends_on:
       - mongodb
 
+  frontend:
+    build:
+      context: ./frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - graphql-server
+
   homeassistant:
     image: homeassistant/home-assistant:latest
     container_name: homeassistant
