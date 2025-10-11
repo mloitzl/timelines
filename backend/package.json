@@ -5,7 +5,7 @@
   "main": "dist/index.js",
   "scripts": {
     "start": "node dist/index.js",
-    "dev": "ts-node src/index.ts",
+    "dev": "dotenv -e ../.env -- nodemon --exec ts-node src/index.ts",
     "build": "tsc",
     "watch": "tsc -w"
   },
@@ -28,6 +28,8 @@
     "@types/express": "^4.17.18",
     "@types/node": "^20.8.2",
     "@types/ws": "^8.18.1",
+    "dotenv-cli": "^10.0.0",
+    "nodemon": "^3.1.10",
     "ts-node": "^10.9.1"
   }
 }
