@@ -1,5 +1,27 @@
-# Homeassistant
+# Homeassistant Configs
 
+
+## REST command
+
+
+```yaml
+rest_command:
+  ingest_dehumidifier_event:
+    url: "http://werkstatt:4000/graphql"
+    method: POST
+    headers:
+      Content-Type: "application/json"
+    payload: >
+      {
+        "query": "mutation Mutation($eventType: String!, $payload: JSON) {  ingestEvent(eventType: $eventType, payload: $payload) {    id    eventType    timestamp    payload  }}",
+        "variables": {
+          "eventType": "{{ eventtype }}",
+          "payload": {{ payload | tojson }}
+        }
+      }
+```
+
+## Ingest Shelly Switch Event
 
 ```yaml
 alias: Ingest Shelly Switch Event
@@ -15,16 +37,22 @@ action:
   - service: rest_command.ingest_dehumidifier_event
     data:
       eventtype: DEHUMIDIFIER
-      payload: |-
-        {{
-          {
-          
-            "entity_id": trigger.entity_id if trigger.entity_id is defined else "",
-            "from_state": trigger.from_state.state if trigger.from_state is defined and trigger.from_state.state is defined else "",
-            "to_state": trigger.to_state.state if trigger.to_state is defined and trigger.to_state.state is defined else "",
-            "attributes": trigger.to_state.attributes if trigger.to_state is defined and trigger.to_state.attributes is defined else {},
-            "last_changed": trigger.to_state.last_changed.isoformat() if trigger.to_state is defined and trigger.to_state.last_changed is defined else "",
-            "last_updated": trigger.to_state.last_updated.isoformat() if trigger.to_state is defined and trigger.to_state.last_updated is defined else ""          
-          } | tojson | replace('\"', '\\\"')
-        }}
+      payload:
+        entity_id: "{{ trigger.entity_id if trigger.entity_id is defined else null }}"
+        from_state: >-
+          {{ trigger.from_state.state if trigger.from_state is defined else null
+          }}
+        to_state: "{{ trigger.to_state.state if trigger.to_state is defined else null }}"
+        from_last_changed: >-
+          {{ trigger.from_state.last_changed.isoformat() if trigger.from_state
+          is defined and trigger.from_state.last_changed is defined else null }}
+        to_last_changed: >-
+          {{ trigger.to_state.last_changed.isoformat() if trigger.to_state is
+          defined and trigger.to_state.last_changed is defined else null }}
+        from_attributes: >-
+          {{ trigger.from_state.attributes if trigger.from_state is defined else
+          {} }}
+        to_attributes: >-
+          {{ trigger.to_state.attributes if trigger.to_state is defined else {}
+          }}
 ```

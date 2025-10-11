@@ -29,3 +29,7 @@ type Query {
   events: [Event!]!
 }
 
+type Subscription {
+  eventIngested: Event!
+}
+

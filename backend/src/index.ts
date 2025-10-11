@@ -1,8 +1,13 @@
 import { ApolloServer } from "@apollo/server";
 import { expressMiddleware } from "@apollo/server/express4";
+import { ApolloServerPluginDrainHttpServer } from "@apollo/server/plugin/drainHttpServer";
 import express from "express";
 import cors from "cors";
 import mongoose from "mongoose";
+import { createServer } from "http";
+import { WebSocketServer } from "ws";
+import { useServer } from "graphql-ws/use/ws";
+import { makeExecutableSchema } from "@graphql-tools/schema";
 import { resolvers } from "./resolvers";
 import GraphQLJSON from "graphql-type-json";
 
@@ -19,6 +24,9 @@ const typeDefs = `
   }
   type Mutation {
     ingestEvent(eventType: String!, payload: JSON): Event!
+  }
+  type Subscription {
+    eventIngested: Event!
   }
 `;
 
@@ -44,12 +52,39 @@ async function startServer() {
   }
 
   const app = express();
-  const server = new ApolloServer({
+  const httpServer = createServer(app);
+
+  // Create the schema
+  const schema = makeExecutableSchema({
     typeDefs,
     resolvers: {
       JSON: GraphQLJSON,
       ...resolvers,
     },
+  });
+
+  // Create WebSocket server for subscriptions
+  const wsServer = new WebSocketServer({
+    server: httpServer,
+    path: "/graphql",
+  });
+
+  const serverCleanup = useServer({ schema }, wsServer);
+
+  const server = new ApolloServer({
+    schema,
+    plugins: [
+      ApolloServerPluginDrainHttpServer({ httpServer }),
+      {
+        async serverWillStart() {
+          return {
+            async drainServer() {
+              await serverCleanup.dispose();
+            },
+          };
+        },
+      },
+    ],
   });
 
   await server.start();
@@ -59,8 +94,9 @@ async function startServer() {
   app.use("/graphql", expressMiddleware(server));
 
   const PORT = 4000;
-  app.listen(PORT, () => {
+  httpServer.listen(PORT, () => {
     console.log(`Server is running at http://localhost:${PORT}/graphql`);
+    console.log(`WebSocket is running at ws://localhost:${PORT}/graphql`);
   });
 }
 

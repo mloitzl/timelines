@@ -1,9 +1,14 @@
 import { Event } from "./models/Event";
+import { PubSub } from "graphql-subscriptions";
 
 interface IngestEventArgs {
   eventType: string;
   payload?: string;
 }
+
+const EVENT_INGESTED = "EVENT_INGESTED";
+
+export const pubsub = new PubSub();
 
 export const resolvers = {
   Query: {
@@ -31,7 +36,16 @@ export const resolvers = {
         payload: parsedPayload,
       });
       await event.save();
+
+      // Publish the event to subscribers
+      pubsub.publish(EVENT_INGESTED, { eventIngested: event });
+
       return event;
+    },
+  },
+  Subscription: {
+    eventIngested: {
+      subscribe: () => pubsub.asyncIterableIterator([EVENT_INGESTED]),
     },
   },
 };

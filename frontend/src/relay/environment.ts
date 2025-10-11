@@ -1,4 +1,11 @@
-import { Environment, Network, RecordSource, Store } from "relay-runtime";
+import {
+  Environment,
+  Network,
+  RecordSource,
+  Store,
+  Observable,
+} from "relay-runtime";
+import { createClient } from "graphql-ws";
 
 async function fetchGraphQL(params: any, variables: Record<string, unknown>) {
   const response = await fetch("http://localhost:4000/graphql", {
@@ -22,7 +29,28 @@ async function fetchGraphQL(params: any, variables: Record<string, unknown>) {
   return json;
 }
 
+// Create WebSocket client for subscriptions
+const wsClient = createClient({
+  url: "ws://localhost:4000/graphql",
+});
+
+function subscribeGraphQL(request: any, variables: Record<string, unknown>) {
+  return Observable.create((sink) => {
+    return wsClient.subscribe(
+      {
+        query: request.text,
+        variables,
+      },
+      {
+        next: (data) => sink.next(data),
+        error: (error) => sink.error(error),
+        complete: () => sink.complete(),
+      }
+    );
+  });
+}
+
 export const RelayEnvironment = new Environment({
-  network: Network.create(fetchGraphQL),
+  network: Network.create(fetchGraphQL, subscribeGraphQL),
   store: new Store(new RecordSource()),
 });
