@@ -55,4 +55,6 @@ action:
         to_attributes: >-
           {{ trigger.to_state.attributes if trigger.to_state is defined else {}
           }}
+        energy_reading: "{{ states('sensor.shellyplus1pm_fce8c0fdc4e0_switch_0_energy') }}"
+        energy_unit: "{{ state_attr('sensor.shellyplus1pm_fce8c0fdc4e0_switch_0_energy', 'unit_of_measurement') }}"
 ```
