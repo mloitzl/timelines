@@ -17,8 +17,8 @@ COPY schema.graphql ../backend/schema.graphql
 COPY . .
 
 # Build arguments for API URLs
-ARG VITE_API_URL=http://host.docker.internal:4000/graphql
-ARG VITE_WS_URL=ws://host.docker.internal:4000/graphql
+ARG VITE_API_URL=http://localhost:4000/graphql
+ARG VITE_WS_URL=ws://localhost:4000/graphql
 
 # Build the application with environment variables
 RUN npm run build
