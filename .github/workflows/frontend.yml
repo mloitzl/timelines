@@ -75,8 +75,8 @@ jobs:
                   context: ./frontend
                   push: true
                   build-args: |
-                      VITE_API_URL=http://timelines-backend:4000/graphql
-                      VITE_WS_URL=ws://timelines-backend:4000/graphql
+                      VITE_API_URL=http://werkstatt:4000/graphql
+                      VITE_WS_URL=ws://werkstatt:4000/graphql
                   tags: |
                       ghcr.io/${{ github.repository_owner }}/timelines-frontend:latest
                       ghcr.io/${{ github.repository_owner }}/timelines-frontend:${{ github.sha }}
