@@ -29,9 +29,14 @@ async function fetchGraphQL(params: any, variables: Record<string, unknown>) {
   return json;
 }
 
-// Create WebSocket client for subscriptions
+// Create WebSocket client for subscriptions with retry logic
 const wsClient = createClient({
   url: "ws://localhost:4000/graphql",
+  retryAttempts: Infinity,
+  shouldRetry: () => true,
+  connectionParams: async () => {
+    return {};
+  },
 });
 
 function subscribeGraphQL(request: any, variables: Record<string, unknown>) {
