@@ -16,6 +16,18 @@ type Event {
   payload: JSON
 }
 
+type DeviceState {
+  id: ID!
+  entityId: String!
+  currentState: String!
+  friendlyName: String
+  lastChanged: String!
+  lastEventId: String!
+  attributes: JSON
+  createdAt: String!
+  updatedAt: String!
+}
+
 """
 The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).
 """
@@ -27,9 +39,12 @@ type Mutation {
 
 type Query {
   events: [Event!]!
+  deviceStates: [DeviceState!]!
+  deviceState(entityId: String!): DeviceState
 }
 
 type Subscription {
   eventIngested: Event!
+  deviceStateChanged: DeviceState!
 }
 

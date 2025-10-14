@@ -10,23 +10,43 @@ import { useServer } from "graphql-ws/use/ws";
 import { makeExecutableSchema } from "@graphql-tools/schema";
 import { resolvers } from "./resolvers";
 import GraphQLJSON from "graphql-type-json";
+import { startDeviceStateWatcher } from "./deviceStateWatcher";
 
 const typeDefs = `
   scalar JSON
+  
   type Event {
     id: ID!
     eventType: String!
     timestamp: String!
     payload: JSON
   }
+  
+  type DeviceState {
+    id: ID!
+    entityId: String!
+    currentState: String!
+    friendlyName: String
+    lastChanged: String!
+    lastEventId: String!
+    attributes: JSON
+    createdAt: String!
+    updatedAt: String!
+  }
+  
   type Query {
     events: [Event!]!
+    deviceStates: [DeviceState!]!
+    deviceState(entityId: String!): DeviceState
   }
+  
   type Mutation {
     ingestEvent(eventType: String!, payload: JSON): Event!
   }
+  
   type Subscription {
     eventIngested: Event!
+    deviceStateChanged: DeviceState!
   }
 `;
 
@@ -98,6 +118,9 @@ async function startServer() {
     console.log(`Server is running at http://localhost:${PORT}/graphql`);
     console.log(`WebSocket is running at ws://localhost:${PORT}/graphql`);
   });
+
+  // Start watching device state changes for GraphQL subscriptions
+  startDeviceStateWatcher();
 }
 
 startServer();

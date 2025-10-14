@@ -1,6 +1,7 @@
 services:
   mongodb:
     image: mongo:latest
+    command: ["--replSet", "rs0", "--bind_ip_all", "--keyFile", "/data/keyfile/mongo-keyfile"]
     ports:
       - "27017:27017"
     environment:
@@ -8,6 +9,27 @@ services:
       - MONGO_INITDB_ROOT_PASSWORD=${MONGODB_PASS}
     volumes:
       - mongodb_data:/data/db
+      - ./.mongodb/mongo-keyfile:/data/keyfile/mongo-keyfile:ro
+    user: "999:999"
+    healthcheck:
+      test: mongosh --username ${MONGODB_USER} --password ${MONGODB_PASS} --authenticationDatabase admin --eval "db.adminCommand('ping')" --quiet
+      interval: 5s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+
+  mongodb-init:
+    image: mongo:latest
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${MONGODB_USER}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGODB_PASS}
+    volumes:
+      - ./.mongodb/init-replica-set.sh:/init-replica-set.sh:ro
+    entrypoint: ["/bin/bash", "/init-replica-set.sh"]
+    restart: on-failure
 
   graphql-server:
     build:
@@ -15,11 +37,23 @@ services:
     ports:
       - "4000:4000"
     environment:
-      - MONGODB_URI=mongodb://mongodb:27017/timelines?authSource=admin
+      - MONGODB_URI=mongodb://mongodb:27017/timelines?authSource=admin&replicaSet=rs0
       - MONGODB_USER=${MONGODB_USER}
       - MONGODB_PASS=${MONGODB_PASS}
     depends_on:
-      - mongodb
+      - mongodb-init
+
+  event-processor:
+    build:
+      context: ./backend
+    command: npm run processor
+    environment:
+      - MONGODB_URI=mongodb://mongodb:27017/timelines?authSource=admin&replicaSet=rs0
+      - MONGODB_USER=${MONGODB_USER}
+      - MONGODB_PASS=${MONGODB_PASS}
+    depends_on:
+      - mongodb-init
+      - graphql-server
 
   frontend:
     build:
@@ -35,7 +69,7 @@ services:
     ports:
       - "8123:8123"
     volumes:
-      - ./config:/config
+      - ./.config:/config
     environment:
       - TZ=Europe/Vienna
     restart: unless-stopped

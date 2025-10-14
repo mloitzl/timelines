@@ -1,4 +1,5 @@
 import { Event } from "./models/Event";
+import { DeviceState } from "./models/DeviceState";
 import { PubSub } from "graphql-subscriptions";
 
 interface IngestEventArgs {
@@ -6,7 +7,12 @@ interface IngestEventArgs {
   payload?: string;
 }
 
+interface DeviceStateArgs {
+  entityId: string;
+}
+
 const EVENT_INGESTED = "EVENT_INGESTED";
+const DEVICE_STATE_CHANGED = "DEVICE_STATE_CHANGED";
 
 export const pubsub = new PubSub();
 
@@ -14,6 +20,12 @@ export const resolvers = {
   Query: {
     events: async () => {
       return await Event.find({});
+    },
+    deviceStates: async () => {
+      return await DeviceState.find({});
+    },
+    deviceState: async (_: unknown, { entityId }: DeviceStateArgs) => {
+      return await DeviceState.findOne({ entityId });
     },
   },
   Mutation: {
@@ -45,7 +57,16 @@ export const resolvers = {
   },
   Subscription: {
     eventIngested: {
-      subscribe: () => pubsub.asyncIterableIterator([EVENT_INGESTED]),
+      subscribe: () => {
+        console.log("[Subscription] Client subscribed to eventIngested");
+        return pubsub.asyncIterableIterator([EVENT_INGESTED]);
+      },
+    },
+    deviceStateChanged: {
+      subscribe: () => {
+        console.log("[Subscription] Client subscribed to deviceStateChanged");
+        return pubsub.asyncIterableIterator([DEVICE_STATE_CHANGED]);
+      },
     },
   },
 };

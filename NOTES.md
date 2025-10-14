@@ -113,6 +113,9 @@ action:
             message: Entfeuchter deaktiviert für 1 Stunde
           - service: automation.turn_off
             entity_id: automation.dehumidifier_control_by_humidity
+          # Turn off dehumidifier if it's currently running
+          - service: switch.turn_off
+            entity_id: switch.shellyplus1pm_fce8c0fdc4e0_switch_0
           - delay: "01:00:00"
           - service: automation.turn_on
             entity_id: automation.dehumidifier_control_by_humidity
@@ -128,6 +131,9 @@ action:
         sequence:
           - service: automation.turn_on
             entity_id: automation.dehumidifier_control_by_humidity
+          # Turn off switch if button accidentally turned it on
+          - service: switch.turn_off
+            entity_id: switch.shellyplus1pm_fce8c0fdc4e0_switch_0
           - device_id: 4e28b102c6aa05bcd16ed2d8cbee2f33
             domain: mobile_app
             type: notify
