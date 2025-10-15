@@ -16,13 +16,20 @@ fi
 
 echo "Waiting for MongoDB to be ready..."
 
-# Wait for MongoDB to be available
+# Wait for MongoDB to be available (try without auth first, then with auth)
+echo "Waiting for MongoDB to start..."
+until mongosh --eval "db.adminCommand('ping')" --quiet > /dev/null 2>&1; do
+  echo "MongoDB not ready yet, waiting..."
+  sleep 2
+done
+
+echo "MongoDB started, waiting for authentication to be ready..."
 until mongosh --username "$MONGO_INITDB_ROOT_USERNAME" \
               --password "$MONGO_INITDB_ROOT_PASSWORD" \
               --authenticationDatabase admin \
               --eval "db.adminCommand('ping')" \
               --quiet > /dev/null 2>&1; do
-  echo "MongoDB not ready yet, waiting..."
+  echo "MongoDB authentication not ready yet, waiting..."
   sleep 2
 done
 
