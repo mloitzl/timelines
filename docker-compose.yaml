@@ -1,4 +1,24 @@
 services:
+  graphql-server:
+    build:
+      context: ./backend
+    ports:
+      - "4000:4000"
+    environment:
+      - MONGODB_URI=mongodb://mongodb:27017/timelines?authSource=admin&replicaSet=rs0
+      - MONGODB_USER=${MONGODB_USER}
+      - MONGODB_PASS=${MONGODB_PASS}
+    depends_on:
+      - mongodb-init
+
+  frontend:
+    build:
+      context: ./frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - graphql-server
+
   mongodb:
     image: mongo:latest
     command: ["--replSet", "rs0", "--bind_ip_all", "--keyFile", "/data/keyfile/mongo-keyfile"]
@@ -31,18 +51,6 @@ services:
     entrypoint: ["/bin/bash", "/init-replica-set.sh"]
     restart: on-failure
 
-  graphql-server:
-    build:
-      context: ./backend
-    ports:
-      - "4000:4000"
-    environment:
-      - MONGODB_URI=mongodb://mongodb:27017/timelines?authSource=admin&replicaSet=rs0
-      - MONGODB_USER=${MONGODB_USER}
-      - MONGODB_PASS=${MONGODB_PASS}
-    depends_on:
-      - mongodb-init
-
   event-processor:
     build:
       context: ./backend
@@ -53,14 +61,6 @@ services:
       - MONGODB_PASS=${MONGODB_PASS}
     depends_on:
       - mongodb-init
-      - graphql-server
-
-  frontend:
-    build:
-      context: ./frontend
-    ports:
-      - "3000:80"
-    depends_on:
       - graphql-server
 
   homeassistant:

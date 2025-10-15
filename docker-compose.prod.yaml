@@ -4,7 +4,7 @@ services:
     ports:
       - "4000:4000"
     environment:
-      - MONGODB_URI=mongodb://mongodb:27017/timelines?authSource=admin
+      - MONGODB_URI=mongodb://mongodb:27017/timelines?authSource=admin&replicaSet=rs0
       - MONGODB_USER=${MONGODB_USER}
       - MONGODB_PASS=${MONGODB_PASS}
     depends_on:
@@ -33,6 +33,32 @@ services:
     volumes:
       - mongodb_data:/data/db
     restart: unless-stopped
+
+  mongodb-init:
+    image: mongo:latest
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${MONGODB_USER}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGODB_PASS}
+    volumes:
+      - ./.mongodb/init-replica-set.sh:/init-replica-set.sh:ro
+    entrypoint: ["/bin/bash", "/init-replica-set.sh"]
+    restart: on-failure
+
+  event-processor:
+    image: ghcr.io/mloitzl/timelines-event-processor:latest
+    environment:
+      - MONGODB_URI=mongodb://mongodb:27017/timelines?authSource=admin&replicaSet=rs0
+      - MONGODB_USER=${MONGODB_USER}
+      - MONGODB_PASS=${MONGODB_PASS}
+    depends_on:
+      - mongodb-init
+      - timelines-backend
+    restart: unless-stopped
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
 
   watchtower:
     image: containrrr/watchtower
