@@ -6,8 +6,6 @@
   "scripts": {
     "start": "node dist/index.js",
     "dev": "dotenv -e ../.env -- nodemon --exec ts-node src/index.ts",
-    "processor": "node dist/processor/index.js",
-    "processor:dev": "dotenv -e ../.env -- nodemon --exec ts-node src/processor/index.ts",
     "build": "tsc",
     "watch": "tsc -w"
   },

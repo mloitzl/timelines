@@ -1,5 +1,5 @@
 import { IProjection, ProcessedEvent } from "../types";
-import { DeviceState } from "../../models/DeviceState";
+import { DeviceState } from "../models/DeviceState";
 
 export class DeviceStateProjection implements IProjection {
   name = "DeviceStateProjection";

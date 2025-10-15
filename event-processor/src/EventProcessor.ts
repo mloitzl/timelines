@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 import { ChangeStreamInsertDocument } from "mongodb";
 import { IProjection, ProcessedEvent } from "./types";
-import { Event } from "../models/Event";
+import { Event } from "./models/Event";
 
 export class EventProcessor {
   private projections: IProjection[] = [];

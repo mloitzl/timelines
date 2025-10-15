@@ -42,11 +42,10 @@ jobs:
               working-directory: backend
               run: npm run build
 
-            - name: Build Docker images
+            - name: Build Docker image
               working-directory: backend
               run: |
-                docker build -t timelines-backend --target backend .
-                docker build -t timelines-event-processor --target event-processor .
+                docker build -t timelines-backend .
 
     # Optionally add container publishing to GitHub Container Registry
     publish:
@@ -74,15 +73,6 @@ jobs:
                       ghcr.io/${{ github.repository_owner }}/timelines-backend:latest
                       ghcr.io/${{ github.repository_owner }}/timelines-backend:${{ github.sha }}
 
-            - name: Build and push event-processor Docker image
-              uses: docker/build-push-action@v4
-              with:
-                  context: ./backend
-                  target: event-processor
-                  push: true
-                  tags: |
-                      ghcr.io/${{ github.repository_owner }}/timelines-event-processor:latest
-                      ghcr.io/${{ github.repository_owner }}/timelines-event-processor:${{ github.sha }}
 
             - name: Build and push mongodb-init Docker image
               uses: docker/build-push-action@v4

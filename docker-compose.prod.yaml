@@ -25,7 +25,14 @@ services:
 
   mongodb:
     image: mongo:latest
-    command: ["--replSet", "rs0", "--bind_ip_all", "--keyFile", "/data/keyfile/mongo-keyfile"]
+    command:
+      [
+        "--replSet",
+        "rs0",
+        "--bind_ip_all",
+        "--keyFile",
+        "/data/keyfile/mongo-keyfile",
+      ]
     ports:
       - "27017:27017"
     environment:

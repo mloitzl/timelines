@@ -1,0 +1,22 @@
+{
+  "name": "timelines-event-processor",
+  "version": "1.0.0",
+  "description": "Event processor for timelines application",
+  "main": "dist/index.js",
+  "scripts": {
+    "start": "node dist/index.js",
+    "dev": "dotenv -e ../.env -- nodemon --exec ts-node src/index.ts",
+    "build": "tsc",
+    "watch": "tsc -w"
+  },
+  "dependencies": {
+    "mongoose": "^7.5.3",
+    "typescript": "^5.2.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20.8.2",
+    "dotenv-cli": "^10.0.0",
+    "nodemon": "^3.1.10",
+    "ts-node": "^10.9.1"
+  }
+}

@@ -11,4 +11,3 @@ export interface ProcessedEvent {
   timestamp: string;
   payload: any;
 }
-
