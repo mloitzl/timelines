@@ -36,6 +36,12 @@ services:
       - mongodb_keyfile:/data/keyfile
     user: "999:999"
     restart: unless-stopped
+    healthcheck:
+      test: mongosh --username ${MONGODB_USER} --password ${MONGODB_PASS} --authenticationDatabase admin --eval "db.adminCommand('ping')" --quiet
+      interval: 5s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
 
   mongodb-init:
     image: ghcr.io/mloitzl/timelines-mongodb-init:latest
