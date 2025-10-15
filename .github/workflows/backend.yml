@@ -5,11 +5,13 @@ on:
         branches: [main]
         paths:
             - "backend/**"
+            - "mongodb/**"
             - ".github/workflows/backend.yml"
     pull_request:
         branches: [main]
         paths:
             - "backend/**"
+            - "mongodb/**"
             - ".github/workflows/backend.yml"
 
 jobs:
@@ -81,3 +83,12 @@ jobs:
                   tags: |
                       ghcr.io/${{ github.repository_owner }}/timelines-event-processor:latest
                       ghcr.io/${{ github.repository_owner }}/timelines-event-processor:${{ github.sha }}
+
+            - name: Build and push mongodb-init Docker image
+              uses: docker/build-push-action@v4
+              with:
+                  context: ./mongodb
+                  push: true
+                  tags: |
+                      ghcr.io/${{ github.repository_owner }}/timelines-mongodb-init:latest
+                      ghcr.io/${{ github.repository_owner }}/timelines-mongodb-init:${{ github.sha }}

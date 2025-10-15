@@ -35,4 +35,4 @@ frontend/build/
 
 # Ignore event-store DB data (if present)
 event-store/data/
-.mongodb/
+.mongodb

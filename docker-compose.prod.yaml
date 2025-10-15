@@ -25,6 +25,7 @@ services:
 
   mongodb:
     image: mongo:latest
+    command: ["--replSet", "rs0", "--bind_ip_all", "--keyFile", "/data/keyfile/mongo-keyfile"]
     ports:
       - "27017:27017"
     environment:
@@ -32,10 +33,12 @@ services:
       - MONGO_INITDB_ROOT_PASSWORD=${MONGODB_PASS}
     volumes:
       - mongodb_data:/data/db
+      - mongodb_keyfile:/data/keyfile
+    user: "999:999"
     restart: unless-stopped
 
   mongodb-init:
-    image: mongo:latest
+    image: ghcr.io/mloitzl/timelines-mongodb-init:latest
     depends_on:
       mongodb:
         condition: service_healthy
@@ -43,9 +46,10 @@ services:
       - MONGO_INITDB_ROOT_USERNAME=${MONGODB_USER}
       - MONGO_INITDB_ROOT_PASSWORD=${MONGODB_PASS}
     volumes:
-      - ./.mongodb/init-replica-set.sh:/init-replica-set.sh:ro
-    entrypoint: ["/bin/bash", "/init-replica-set.sh"]
+      - mongodb_keyfile:/data/keyfile
     restart: on-failure
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
 
   event-processor:
     image: ghcr.io/mloitzl/timelines-event-processor:latest
@@ -75,3 +79,4 @@ services:
     restart: unless-stopped
 volumes:
   mongodb_data:
+  mongodb_keyfile:

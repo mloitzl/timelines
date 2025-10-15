@@ -29,7 +29,7 @@ services:
       - MONGO_INITDB_ROOT_PASSWORD=${MONGODB_PASS}
     volumes:
       - mongodb_data:/data/db
-      - ./.mongodb/mongo-keyfile:/data/keyfile/mongo-keyfile:ro
+      - mongodb_keyfile:/data/keyfile
     user: "999:999"
     healthcheck:
       test: mongosh --username ${MONGODB_USER} --password ${MONGODB_PASS} --authenticationDatabase admin --eval "db.adminCommand('ping')" --quiet
@@ -47,7 +47,8 @@ services:
       - MONGO_INITDB_ROOT_USERNAME=${MONGODB_USER}
       - MONGO_INITDB_ROOT_PASSWORD=${MONGODB_PASS}
     volumes:
-      - ./.mongodb/init-replica-set.sh:/init-replica-set.sh:ro
+      - ./mongodb/init-replica-set.sh:/init-replica-set.sh:ro
+      - mongodb_keyfile:/data/keyfile
     entrypoint: ["/bin/bash", "/init-replica-set.sh"]
     restart: on-failure
 
@@ -76,3 +77,4 @@ services:
 
 volumes:
   mongodb_data:
+  mongodb_keyfile:
