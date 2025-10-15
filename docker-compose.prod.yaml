@@ -8,7 +8,7 @@ services:
       - MONGODB_USER=${MONGODB_USER}
       - MONGODB_PASS=${MONGODB_PASS}
     depends_on:
-      - mongodb
+      - mongodb-init
     restart: unless-stopped
     labels:
       - "com.centurylinklabs.watchtower.enable=true"
@@ -46,8 +46,7 @@ services:
   mongodb-init:
     image: ghcr.io/mloitzl/timelines-mongodb-init:latest
     depends_on:
-      mongodb:
-        condition: service_healthy
+      - mongodb
     environment:
       - MONGO_INITDB_ROOT_USERNAME=${MONGODB_USER}
       - MONGO_INITDB_ROOT_PASSWORD=${MONGODB_PASS}
