@@ -18,13 +18,14 @@ echo "Waiting for MongoDB to be ready..."
 
 # Wait for MongoDB to be available (try without auth first, then with auth)
 echo "Waiting for MongoDB to start..."
-until mongosh --eval "db.adminCommand('ping')" --quiet > /dev/null 2>&1; do
+until mongosh --host mongodb --eval "db.adminCommand('ping')" --quiet > /dev/null 2>&1; do
   echo "MongoDB not ready yet, waiting..."
   sleep 2
 done
 
 echo "MongoDB started, waiting for authentication to be ready..."
-until mongosh --username "$MONGO_INITDB_ROOT_USERNAME" \
+until mongosh --host mongodb \
+              --username "$MONGO_INITDB_ROOT_USERNAME" \
               --password "$MONGO_INITDB_ROOT_PASSWORD" \
               --authenticationDatabase admin \
               --eval "db.adminCommand('ping')" \
@@ -36,7 +37,8 @@ done
 echo "MongoDB is ready!"
 
 # Check if replica set is already initialized
-RS_STATUS=$(mongosh --username "$MONGO_INITDB_ROOT_USERNAME" \
+RS_STATUS=$(mongosh --host mongodb \
+                     --username "$MONGO_INITDB_ROOT_USERNAME" \
                      --password "$MONGO_INITDB_ROOT_PASSWORD" \
                      --authenticationDatabase admin \
                      --eval "try { rs.status().ok } catch(e) { 0 }" \
@@ -44,14 +46,16 @@ RS_STATUS=$(mongosh --username "$MONGO_INITDB_ROOT_USERNAME" \
 
 if [ "$RS_STATUS" = "1" ]; then
   echo "Replica set already initialized"
-  mongosh --username "$MONGO_INITDB_ROOT_USERNAME" \
+  mongosh --host mongodb \
+          --username "$MONGO_INITDB_ROOT_USERNAME" \
           --password "$MONGO_INITDB_ROOT_PASSWORD" \
           --authenticationDatabase admin \
           --eval "rs.status().members" \
           --quiet
 else
   echo "Initializing replica set 'rs0'..."
-  mongosh --username "$MONGO_INITDB_ROOT_USERNAME" \
+  mongosh --host mongodb \
+          --username "$MONGO_INITDB_ROOT_USERNAME" \
           --password "$MONGO_INITDB_ROOT_PASSWORD" \
           --authenticationDatabase admin \
           --eval "rs.initiate({_id:'rs0',members:[{_id:0,host:'mongodb:27017'}]})" \
@@ -61,7 +65,8 @@ else
   sleep 5
   
   echo "Replica set initialized successfully!"
-  mongosh --username "$MONGO_INITDB_ROOT_USERNAME" \
+  mongosh --host mongodb \
+          --username "$MONGO_INITDB_ROOT_USERNAME" \
           --password "$MONGO_INITDB_ROOT_PASSWORD" \
           --authenticationDatabase admin \
           --eval "rs.status().members" \
