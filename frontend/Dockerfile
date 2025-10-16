@@ -9,10 +9,6 @@ COPY package*.json ./
 # Install dependencies
 RUN npm ci
 
-# Create backend directory and copy schema (needed for Relay compiler)
-RUN mkdir -p ../backend
-COPY schema.graphql ../backend/schema.graphql
-
 # Copy source code
 COPY . .
 

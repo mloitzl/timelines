@@ -1,82 +1,83 @@
 name: Frontend CI
 
 on:
-    push:
-        branches: [main]
-        paths:
-            - "frontend/**"
-            - "backend/schema.graphql"
-            - ".github/workflows/frontend.yml"
-    pull_request:
-        branches: [main]
-        paths:
-            - "frontend/**"
-            - "backend/schema.graphql"
-            - ".github/workflows/frontend.yml"
+  push:
+    branches: [main]
+    paths:
+      - "frontend/**"
+      - "backend/schema.graphql"
+      - ".github/workflows/frontend.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "frontend/**"
+      - "backend/schema.graphql"
+      - ".github/workflows/frontend.yml"
 
 jobs:
-    build:
-        runs-on: self-hosted
+  build:
+    runs-on: self-hosted
 
-        steps:
-            - uses: actions/checkout@v4
+    steps:
+      - uses: actions/checkout@v4
 
-            - name: Setup Node.js
-              uses: actions/setup-node@v3
-              with:
-                  node-version: "20"
-                  cache: "npm"
-                  cache-dependency-path: frontend/package-lock.json
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: frontend/package-lock.json
 
-            - name: Sync GraphQL schema
-              run: cp backend/schema.graphql frontend/schema.graphql
+      - name: Sync GraphQL schema
+        run: cp backend/schema.graphql frontend/schema.graphql
 
-            - name: Install dependencies
-              working-directory: frontend
-              run: npm ci
+      - name: Install dependencies
+        working-directory: frontend
+        run: npm ci
 
-            - name: Build
-              working-directory: frontend
-              run: npm run build
-              env:
-                  VITE_API_URL: http://timelines-backend:4000/graphql
-                  VITE_WS_URL: ws://timelines-backend:4000/graphql
+      - name: Build
+        working-directory: frontend
+        run: npm run build
+        env:
+          VITE_API_URL: http://timelines-backend:4000/graphql
+          VITE_WS_URL: ws://timelines-backend:4000/graphql
 
-            - name: Build Docker image
-              working-directory: frontend
-              run: |
-                  docker build \
-                    --build-arg VITE_API_URL=http://timelines-backend:4000/graphql \
-                    --build-arg VITE_WS_URL=ws://timelines-backend:4000/graphql \
-                    -t timelines-frontend .
+      - name: Build Docker image
+        uses: docker/build-push-action@v4
+        with:
+          context: ./frontend
+          push: false
+          tags: timelines-frontend
+          build-args: |
+            VITE_API_URL=http://timelines-backend:4000/graphql
+            VITE_WS_URL=ws://timelines-backend:4000/graphql
 
-    # Optionally add container publishing to GitHub Container Registry
-    publish:
-        needs: build
-        runs-on: self-hosted
-        if: github.ref == 'refs/heads/main' # Only publish on main branch pushes
+  publish:
+    needs: build
+    runs-on: self-hosted
+    if: github.ref == 'refs/heads/main'
 
-        steps:
-            - uses: actions/checkout@v4
+    steps:
+      - uses: actions/checkout@v4
 
-            - name: Sync GraphQL schema
-              run: cp backend/schema.graphql frontend/schema.graphql
+      - name: Sync GraphQL schema
+        run: cp backend/schema.graphql frontend/schema.graphql
 
-            - name: Login to GitHub Container Registry
-              uses: docker/login-action@v2
-              with:
-                  registry: ghcr.io
-                  username: ${{ github.actor }}
-                  password: ${{ secrets.GHCR_PAT }}
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GHCR_PAT }}
 
-            - name: Build and push Docker image
-              uses: docker/build-push-action@v4
-              with:
-                  context: ./frontend
-                  push: true
-                  build-args: |
-                      VITE_API_URL=http://werkstatt:4000/graphql
-                      VITE_WS_URL=ws://werkstatt:4000/graphql
-                  tags: |
-                      ghcr.io/${{ github.repository_owner }}/timelines-frontend:latest
-                      ghcr.io/${{ github.repository_owner }}/timelines-frontend:${{ github.sha }}
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v4
+        with:
+          context: ./frontend
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/timelines-frontend:latest
+            ghcr.io/${{ github.repository_owner }}/timelines-frontend:${{ github.sha }}
+          build-args: |
+            VITE_API_URL=http://werkstatt:4000/graphql
+            VITE_WS_URL=ws://werkstatt:4000/graphql
