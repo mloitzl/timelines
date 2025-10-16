@@ -13,7 +13,7 @@ on:
       - ".github/workflows/event-processor.yml"
 
 jobs:
-  build:
+  build-and-publish:
     runs-on: self-hosted
 
     steps:

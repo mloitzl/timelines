@@ -15,7 +15,7 @@ on:
             - ".github/workflows/backend.yml"
 
 jobs:
-    build:
+    build-and-publish:
         runs-on: self-hosted
 
         steps:
