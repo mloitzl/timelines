@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import { EventProcessor } from "./EventProcessor";
 import { DeviceStateProjection } from "./projections/DeviceStateProjection";
+import { DehumidifierRunSaga } from "./projections/DehumidifierRunSaga";
 
 async function startProcessor() {
   // Connect to MongoDB
@@ -24,9 +25,13 @@ async function startProcessor() {
 
   // Create projections
   const deviceStateProjection = new DeviceStateProjection();
+  const dehumidifierRunSaga = new DehumidifierRunSaga();
 
   // Create and start event processor
-  const processor = new EventProcessor([deviceStateProjection]);
+  const processor = new EventProcessor([
+    deviceStateProjection,
+    dehumidifierRunSaga,
+  ]);
 
   await processor.start();
 

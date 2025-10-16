@@ -11,44 +11,12 @@ import { makeExecutableSchema } from "@graphql-tools/schema";
 import { resolvers } from "./resolvers";
 import GraphQLJSON from "graphql-type-json";
 import { startDeviceStateWatcher } from "./deviceStateWatcher";
+import { startDehumidifierRunWatcher } from "./dehumidifierRunWatcher";
+import { readFileSync } from "fs";
+import { join } from "path";
 
-const typeDefs = `
-  scalar JSON
-  
-  type Event {
-    id: ID!
-    eventType: String!
-    timestamp: String!
-    payload: JSON
-  }
-  
-  type DeviceState {
-    id: ID!
-    entityId: String!
-    currentState: String!
-    friendlyName: String
-    lastChanged: String!
-    lastEventId: String!
-    attributes: JSON
-    createdAt: String!
-    updatedAt: String!
-  }
-  
-  type Query {
-    events: [Event!]!
-    deviceStates: [DeviceState!]!
-    deviceState(entityId: String!): DeviceState
-  }
-  
-  type Mutation {
-    ingestEvent(eventType: String!, payload: JSON): Event!
-  }
-  
-  type Subscription {
-    eventIngested: Event!
-    deviceStateChanged: DeviceState!
-  }
-`;
+// Load GraphQL schema from file
+const typeDefs = readFileSync(join(__dirname, "../schema.graphql"), "utf8");
 
 async function startServer() {
   // Connect to MongoDB
@@ -64,7 +32,6 @@ async function startServer() {
       mongooseOptions.pass = mongoPass;
     }
     await mongoose.connect(mongoUri, mongooseOptions);
-    await mongoose.connect(mongoUri);
     console.log("Connected to MongoDB at", mongoUri);
   } catch (error) {
     console.error("Error connecting to MongoDB:", error);
@@ -121,6 +88,7 @@ async function startServer() {
 
   // Start watching device state changes for GraphQL subscriptions
   startDeviceStateWatcher();
+  startDehumidifierRunWatcher();
 }
 
 startServer();

@@ -6,11 +6,12 @@ A modern, real-time event processing system with a beautiful device state dashbo
 
 - **🔄 Real-Time Event Processing** - MongoDB Change Streams for instant event processing
 - **📊 Device State Dashboard** - Beautiful, live-updating device status interface
+- **🌊 Saga Pattern Implementation** - Track long-running processes with DehumidifierRunSaga
 - **⚡ GraphQL API** - Type-safe queries, mutations, and subscriptions
 - **🎨 Modern UI** - Glassmorphism design with smooth animations
 - **📱 Responsive Design** - Works on desktop, tablet, and mobile
 - **🐳 Docker Ready** - Complete containerized setup
-- **🔧 Extensible** - Easy to add new projections and event types
+- **🔧 Extensible** - Easy to add new projections, sagas, and event types
 
 ## 🚀 Quick Start
 
@@ -44,14 +45,18 @@ This starts:
 
 Visit: http://localhost:3000
 
-You'll see a beautiful two-column layout:
-- **Left**: Real-time device states
-- **Right**: Event timeline
+You'll see a beautiful responsive layout:
+- **Top Row**: Device States and Dehumidifier Runs side by side
+- **Bottom Row**: Event Timeline spanning full width
+- **Mobile**: Stacks vertically for optimal mobile experience
 
 ### 4. Test It Works
 
 ```bash
-# Send test events
+# Test the complete saga flow
+./test-dehumidifier-saga.js
+
+# Or test device state projections
 ./test-device-state-projection.js
 
 # Watch the UI update in real-time! ✨
@@ -71,8 +76,21 @@ You'll see a beautiful two-column layout:
 
 - **Automatic Processing** - Events are processed as soon as they're ingested
 - **Device State Projections** - Current state maintained automatically
-- **Extensible Framework** - Add new projections easily
+- **Saga Pattern** - Track long-running processes with complete lifecycle management
+- **Extensible Framework** - Add new projections and sagas easily
 - **Fault Tolerant** - Resume tokens for recovery from failures
+
+### Dehumidifier Run Tracking (Saga Pattern)
+
+- **Complete Lifecycle** - Tracks dehumidifier runs from start to finish
+- **Card-Style Design** - Each run displayed as a distinct, beautiful card
+- **Status-Based Color Coding** - Green for running, blue for finished, red for error
+- **Real-Time Duration** - Live updates for running sagas every 10 seconds
+- **Energy Consumption** - Calculates and displays energy used per run
+- **Timeline Display** - Chronological list with newest runs on top
+- **Status Management** - Running, finished, and error states with visual indicators
+- **Automation Detection** - Tracks manual vs automated starts with icons (🤖/👤)
+- **Responsive Design** - Optimized for desktop and mobile viewing
 
 ### GraphQL API
 
@@ -93,6 +111,28 @@ subscription {
     entityId
     currentState
     friendlyName
+  }
+}
+
+# Query dehumidifier runs
+query {
+  dehumidifierRuns {
+    id
+    status
+    startTime
+    duration
+    energyConsumed
+    startedBy
+  }
+}
+
+# Subscribe to dehumidifier run changes
+subscription {
+  dehumidifierRunChanged {
+    id
+    status
+    duration
+    energyConsumed
   }
 }
 ```
@@ -118,7 +158,7 @@ subscription {
 1. Events ingested via GraphQL mutations
 2. Stored in MongoDB events collection
 3. Change Stream triggers Event Processor
-4. Projections update derived state (device states)
+4. Projections & Sagas update derived state (device states, dehumidifier runs)
 5. GraphQL subscriptions notify frontend
 6. UI updates automatically
 
@@ -142,7 +182,12 @@ timelines/
 ├── event-processor/        # Background event processor
 │   └── src/
 │       ├── EventProcessor.ts
-│       └── projections/    # Event projections
+│       ├── projections/    # Event projections & sagas
+│       │   ├── DeviceStateProjection.ts
+│       │   └── DehumidifierRunSaga.ts
+│       └── models/         # Data models
+│           ├── DeviceState.ts
+│           └── DehumidifierRun.ts
 ├── docker-compose.yaml     # Service orchestration
 └── test-*.js              # Test scripts
 ```
@@ -180,6 +225,23 @@ eventTypes = ["DEHUMIDIFIER", "LIGHT", "SWITCH"]; // Add your types
 ```bash
 docker-compose restart event-processor
 ```
+
+### Adding New Sagas
+
+1. Create a new saga projection:
+```typescript
+// event-processor/src/projections/MySaga.ts
+export class MySaga implements IProjection {
+  name = "MySaga";
+  eventTypes = ["MY_EVENT_TYPE"];
+  
+  async process(event: ProcessedEvent): Promise<void> {
+    // Your saga logic here
+  }
+}
+```
+
+2. Register it in the processor and restart.
 
 ### Adding New Projections
 
@@ -223,7 +285,10 @@ curl -X POST http://localhost:4000/graphql \
 ## 🧪 Testing
 
 ```bash
-# Test the complete system
+# Test the complete saga flow
+./test-dehumidifier-saga.js
+
+# Test device state projections
 ./test-device-state-projection.js
 
 # Simulate device events
@@ -252,9 +317,10 @@ docker-compose logs -f event-processor
 ## 🔮 Roadmap
 
 ### Immediate
+- [x] Energy consumption tracking (DehumidifierRunSaga)
 - [ ] Add more device types (lights, sensors, etc.)
-- [ ] Energy consumption tracking
 - [ ] Device uptime statistics
+- [ ] Humidity threshold tracking in automation events
 
 ### Future
 - [ ] Complex automation workflows

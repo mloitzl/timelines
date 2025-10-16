@@ -13,6 +13,7 @@ RUN npm install
 # Copy source code
 COPY tsconfig.json ./
 COPY src/ ./src/
+COPY schema.graphql ./
 
 # Build TypeScript code
 RUN npm run build

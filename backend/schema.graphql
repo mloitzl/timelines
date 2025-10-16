@@ -28,6 +28,26 @@ type DeviceState {
   updatedAt: String!
 }
 
+type DehumidifierRun {
+  id: ID!
+  entityId: String!
+  status: String!
+  startTime: String!
+  endTime: String
+  duration: Int
+  startEnergyReading: Float!
+  endEnergyReading: Float
+  energyConsumed: Float
+  energyUnit: String!
+  startedBy: String!
+  humidityThreshold: Float
+  startEventId: String!
+  endEventId: String
+  errorMessage: String
+  createdAt: String!
+  updatedAt: String!
+}
+
 """
 The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).
 """
@@ -41,10 +61,13 @@ type Query {
   events: [Event!]!
   deviceStates: [DeviceState!]!
   deviceState(entityId: String!): DeviceState
+  dehumidifierRuns: [DehumidifierRun!]!
+  dehumidifierRun(id: ID!): DehumidifierRun
 }
 
 type Subscription {
   eventIngested: Event!
   deviceStateChanged: DeviceState!
+  dehumidifierRunChanged: DehumidifierRun!
 }
 

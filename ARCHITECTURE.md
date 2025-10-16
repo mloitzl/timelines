@@ -48,6 +48,7 @@ Timelines is a real-time event processing system built on modern web technologie
 │  ├── EventProcessor Core                                                   │
 │  ├── Projection Framework                                                  │
 │  ├── DeviceStateProjection                                                 │
+│  ├── DehumidifierRunSaga (Saga Pattern)                                    │
 │  └── Future: EnergyProjection, AlertProjection, etc.                       │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
@@ -83,6 +84,20 @@ Timelines is a real-time event processing system built on modern web technologie
 - GraphQL Subscription: eventIngested
 - Chronological event display
 - JSON payload rendering
+```
+
+#### DehumidifierRunList Component
+```typescript
+// Saga-based dehumidifier run tracking
+- GraphQL Query: dehumidifierRuns
+- GraphQL Subscription: dehumidifierRunChanged
+- Real-time duration updates for running sagas
+- Energy consumption tracking
+- Card-style design with status-based color coding
+- Timeline display with newest runs on top
+- Status indicators (running/finished/error)
+- Responsive design for mobile devices
+- Visual separation with glassmorphism effects
 ```
 
 **Data Flow:**
@@ -124,10 +139,32 @@ type DeviceState {
   updatedAt: String!
 }
 
+type DehumidifierRun {
+  id: ID!
+  entityId: String!
+  status: String!
+  startTime: String!
+  endTime: String
+  duration: Int
+  startEnergyReading: Float!
+  endEnergyReading: Float
+  energyConsumed: Float
+  energyUnit: String!
+  startedBy: String!
+  humidityThreshold: Float
+  startEventId: String!
+  endEventId: String
+  errorMessage: String
+  createdAt: String!
+  updatedAt: String!
+}
+
 type Query {
   events: [Event!]!
   deviceStates: [DeviceState!]!
   deviceState(entityId: String!): DeviceState
+  dehumidifierRuns: [DehumidifierRun!]!
+  dehumidifierRun(id: ID!): DehumidifierRun
 }
 
 type Mutation {
@@ -137,6 +174,7 @@ type Mutation {
 type Subscription {
   eventIngested: Event!
   deviceStateChanged: DeviceState!
+  dehumidifierRunChanged: DehumidifierRun!
 }
 ```
 
@@ -190,12 +228,40 @@ class DeviceStateProjection implements IProjection {
 }
 ```
 
+#### DehumidifierRunSaga
+```typescript
+class DehumidifierRunSaga implements IProjection {
+  eventTypes = ["DEHUMIDIFIER"];
+  
+  async process(event: ProcessedEvent): Promise<void> {
+    if (event.payload.to_state === "on" && event.payload.from_state === "off") {
+      // Start new saga
+      await this.startSaga(event);
+    } else if (event.payload.to_state === "off" && event.payload.from_state === "on") {
+      // End existing saga
+      await this.endSaga(event);
+    }
+  }
+  
+  private async startSaga(event: ProcessedEvent): Promise<void> {
+    // Create new DehumidifierRun with status "running"
+    // Track start time, energy reading, startedBy (manual/automation)
+  }
+  
+  private async endSaga(event: ProcessedEvent): Promise<void> {
+    // Find running saga and mark as "finished"
+    // Calculate duration and energy consumed
+    // Update with end time and final energy reading
+  }
+}
+```
+
 ### 4. MongoDB Database
 
 **Configuration:**
 - Replica Set: `rs0` (required for Change Streams)
 - Authentication: Username/password
-- Collections: `events`, `devicestates`
+- Collections: `events`, `devicestates`, `dehumidifierruns`
 
 **Change Streams:**
 ```javascript
@@ -222,12 +288,12 @@ changeStream.on('change', (change) => {
    ↓ Change Stream notification
 4. Event Processor
    ↓ Process event
-5. Projections (DeviceStateProjection)
+5. Projections (DeviceStateProjection, DehumidifierRunSaga)
    ↓ Update derived state
-6. MongoDB (devicestates collection)
-   ↓ GraphQL Subscription
+6. MongoDB (devicestates, dehumidifierruns collections)
+   ↓ GraphQL Subscriptions
 7. GraphQL Server
-   ↓ WebSocket message
+   ↓ WebSocket messages
 8. Frontend (Relay)
    ↓ Update UI
 9. React Components
@@ -242,11 +308,11 @@ MongoDB Change Stream
     ↓
 Event Processor
     ↓
-DeviceStateProjection.process()
+Projections (DeviceStateProjection, DehumidifierRunSaga)
     ↓
-MongoDB Upsert (devicestates)
+MongoDB Upsert (devicestates, dehumidifierruns)
     ↓
-GraphQL Subscription: deviceStateChanged
+GraphQL Subscriptions (deviceStateChanged, dehumidifierRunChanged)
     ↓
 WebSocket to Frontend
     ↓
@@ -256,6 +322,56 @@ React Re-render
     ↓
 UI Updates (< 1 second)
 ```
+
+## Saga Pattern Implementation
+
+### DehumidifierRunSaga
+
+The DehumidifierRunSaga demonstrates the saga pattern for tracking long-running processes. It manages the complete lifecycle of dehumidifier operations:
+
+**Saga Lifecycle:**
+1. **Start**: Triggered when dehumidifier turns ON (`to_state: "on"`)
+2. **Running**: Tracks duration, energy consumption, and status
+3. **End**: Triggered when dehumidifier turns OFF (`to_state: "off"`)
+4. **Complete**: Calculates final duration and energy consumed
+
+**Key Features:**
+- **State Management**: Tracks saga status (running/finished/error)
+- **Energy Tracking**: Monitors energy consumption from start to finish
+- **Duration Calculation**: Real-time duration for running sagas
+- **Error Handling**: Marks sagas as error if interrupted or invalid
+- **Real-time Updates**: GraphQL subscriptions for live UI updates
+
+**Data Model:**
+```typescript
+interface DehumidifierRun {
+  id: string;
+  entityId: string;
+  status: "running" | "finished" | "error";
+  startTime: string;
+  endTime?: string;
+  duration?: number; // milliseconds
+  startEnergyReading: number;
+  endEnergyReading?: number;
+  energyConsumed?: number; // kWh
+  energyUnit: string;
+  startedBy: "automation" | "manual";
+  humidityThreshold?: number;
+  startEventId: string;
+  endEventId?: string;
+  errorMessage?: string;
+}
+```
+
+**UI Integration:**
+- **Card-Style Design**: Each run displayed as a distinct card with glassmorphism effects
+- **Status-Based Color Coding**: Green for running, blue for finished, red for error
+- **Real-time Duration Updates**: Live updates for running sagas every 10 seconds
+- **Timeline Display**: Newest runs on top with clear visual separation
+- **Energy Consumption Visualization**: Prominent display of energy usage
+- **Responsive Layout**: Two-column layout on desktop, stacked on mobile
+- **Error State Handling**: Clear error messages with red color coding
+- **Visual Indicators**: Icons for automation vs manual starts (🤖/👤)
 
 ## Extension Points
 
@@ -279,7 +395,118 @@ export class DeviceStateProjection implements IProjection {
 docker-compose restart event-processor
 ```
 
-### 2. Creating New Projections
+### 2. Creating New Sagas
+
+**Step 1:** Create Saga Class
+```typescript
+// event-processor/src/projections/MySaga.ts
+import { IProjection, ProcessedEvent } from "../types";
+import { MyRun } from "../models/MyRun";
+
+export class MySaga implements IProjection {
+  name = "MySaga";
+  eventTypes = ["MY_EVENT_TYPE"];
+
+  async process(event: ProcessedEvent): Promise<void> {
+    const { payload } = event;
+    
+    if (payload.to_state === "start" && payload.from_state === "stop") {
+      await this.startSaga(event);
+    } else if (payload.to_state === "stop" && payload.from_state === "start") {
+      await this.endSaga(event);
+    }
+  }
+
+  private async startSaga(event: ProcessedEvent): Promise<void> {
+    // Create new saga record
+    const newRun = new MyRun({
+      entityId: event.payload.entity_id,
+      status: "running",
+      startTime: event.timestamp,
+      startEventId: event._id,
+    });
+    await newRun.save();
+  }
+
+  private async endSaga(event: ProcessedEvent): Promise<void> {
+    // Find and complete running saga
+    const runningSaga = await MyRun.findOne({
+      entityId: event.payload.entity_id,
+      status: "running",
+    });
+
+    if (runningSaga) {
+      const duration = new Date(event.timestamp).getTime() - new Date(runningSaga.startTime).getTime();
+      await MyRun.findByIdAndUpdate(runningSaga._id, {
+        status: "finished",
+        endTime: event.timestamp,
+        duration: duration,
+        endEventId: event._id,
+      });
+    }
+  }
+}
+```
+
+**Step 2:** Create Data Model
+```typescript
+// event-processor/src/models/MyRun.ts
+import mongoose from "mongoose";
+
+const myRunSchema = new mongoose.Schema({
+  entityId: { type: String, required: true },
+  status: { type: String, enum: ["running", "finished", "error"], required: true },
+  startTime: { type: String, required: true },
+  endTime: { type: String, required: false },
+  duration: { type: Number, required: false },
+  startEventId: { type: String, required: true },
+  endEventId: { type: String, required: false },
+  // Add your custom fields here
+}, { timestamps: true });
+
+export const MyRun = mongoose.model("MyRun", myRunSchema);
+```
+
+**Step 3:** Register in Processor
+```typescript
+// event-processor/src/index.ts
+import { MySaga } from "./projections/MySaga";
+
+const mySaga = new MySaga();
+const processor = new EventProcessor([
+  deviceStateProjection,
+  dehumidifierRunSaga,
+  mySaga, // ← Add here
+]);
+```
+
+**Step 4:** Add GraphQL Schema
+```graphql
+# backend/schema.graphql
+type MyRun {
+  id: ID!
+  entityId: String!
+  status: String!
+  startTime: String!
+  endTime: String
+  duration: Int
+  startEventId: String!
+  endEventId: String
+  createdAt: String!
+  updatedAt: String!
+}
+
+extend type Query {
+  myRuns: [MyRun!]!
+  myRun(id: ID!): MyRun
+}
+
+extend type Subscription {
+  myRunChanged: MyRun!
+}
+```
+
+### 3. Creating New Projections
 
 **Step 1:** Create Projection Class
 ```typescript
