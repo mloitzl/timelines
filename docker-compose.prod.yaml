@@ -86,6 +86,7 @@ services:
       - WATCHTOWER_POLL_INTERVAL=300
       - WATCHTOWER_REGISTRY_AUTH=true
       - WATCHTOWER_NOTIFICATION_REPORT=true
+      - WATCHTOWER_MONITOR_ONLY=true
       - REPO_USER=${GITHUB_USER}
       - REPO_PASS=${GHCR_GITHUB_PAT}
     restart: unless-stopped
