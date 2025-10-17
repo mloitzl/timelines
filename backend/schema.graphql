@@ -39,6 +39,12 @@ type DehumidifierRun {
   endEnergyReading: Float
   energyConsumed: Float
   energyUnit: String!
+  startHumidityReading: Float
+  endHumidityReading: Float
+  humidityUnit: String
+  startTemperatureReading: Float
+  endTemperatureReading: Float
+  temperatureUnit: String
   startedBy: String!
   humidityThreshold: Float
   startEventId: String!

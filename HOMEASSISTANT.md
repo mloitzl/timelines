@@ -54,7 +54,16 @@ action:
         energy_unit: >-
           {{ state_attr('sensor.shellyplus1pm_fce8c0fdc4e0_switch_0_energy',
           'unit_of_measurement') }}
+        humidity_reading: "{{ states('sensor.atc_3d2f_humidity') }}"
+        humidity_unit: >-
+          {{ state_attr('sensor.atc_3d2f_humidity', 'unit_of_measurement') }}
+        temperature_reading: "{{ states('sensor.atc_3d2f_temperature') }}"
+        temperature_unit: >-
+          {{ state_attr('sensor.atc_3d2f_temperature', 'unit_of_measurement') }}
 ```
+
+sensor.atc_3d2f_humidity
+sensor.atc_3d2f_temperature
 
 ## Dehumidifier automation
 

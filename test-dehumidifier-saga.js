@@ -69,6 +69,12 @@ async function queryDehumidifierRuns() {
         endEnergyReading
         energyConsumed
         energyUnit
+        startHumidityReading
+        endHumidityReading
+        humidityUnit
+        startTemperatureReading
+        endTemperatureReading
+        temperatureUnit
         startedBy
         humidityThreshold
         startEventId
@@ -115,6 +121,10 @@ async function simulateDehumidifierSaga() {
     payload: {
       energy_reading: startEnergyReading,
       energy_unit: "kWh",
+      humidity_reading: 75.2,
+      humidity_unit: "%",
+      temperature_reading: 22.5,
+      temperature_unit: "°C",
       entity_id: "switch.shellyplus1pm_fce8c0fdc4e0_switch_0",
       from_attributes: {
         friendly_name: "Dehumidifier",
@@ -132,6 +142,12 @@ async function simulateDehumidifierSaga() {
   console.log("📤 Sending event: Dehumidifier turning ON");
   console.log(
     `   Energy reading: ${startEvent.payload.energy_reading} ${startEvent.payload.energy_unit}`
+  );
+  console.log(
+    `   Humidity: ${startEvent.payload.humidity_reading} ${startEvent.payload.humidity_unit}`
+  );
+  console.log(
+    `   Temperature: ${startEvent.payload.temperature_reading} ${startEvent.payload.temperature_unit}`
   );
   const startResult = await sendEvent(startEvent);
   console.log("✅ Event ingested:", startResult.id);
@@ -161,7 +177,7 @@ async function simulateDehumidifierSaga() {
   }
 
   // Step 2: Simulate running time
-  const runDuration = 5000; // 5 seconds
+  const runDuration = 30000; // 30 seconds
   console.log(
     `\n⏳ Simulating dehumidifier running for ${runDuration / 1000} seconds...`
   );
@@ -176,6 +192,10 @@ async function simulateDehumidifierSaga() {
     payload: {
       energy_reading: endEnergyReading,
       energy_unit: "kWh",
+      humidity_reading: 68.5,
+      humidity_unit: "%",
+      temperature_reading: 23.1,
+      temperature_unit: "°C",
       entity_id: "switch.shellyplus1pm_fce8c0fdc4e0_switch_0",
       from_attributes: {
         friendly_name: "Dehumidifier",
@@ -195,6 +215,12 @@ async function simulateDehumidifierSaga() {
   console.log("📤 Sending event: Dehumidifier turning OFF");
   console.log(
     `   Energy reading: ${endEvent.payload.energy_reading} ${endEvent.payload.energy_unit}`
+  );
+  console.log(
+    `   Humidity: ${endEvent.payload.humidity_reading} ${endEvent.payload.humidity_unit}`
+  );
+  console.log(
+    `   Temperature: ${endEvent.payload.temperature_reading} ${endEvent.payload.temperature_unit}`
   );
   console.log(`   Energy consumed: ${energyConsumed.toFixed(6)} kWh`);
   const endResult = await sendEvent(endEvent);
@@ -225,6 +251,18 @@ async function simulateDehumidifierSaga() {
     );
     console.log(
       `   End energy: ${completedRun.endEnergyReading} ${completedRun.energyUnit}`
+    );
+    console.log(
+      `   Start humidity: ${completedRun.startHumidityReading} ${completedRun.humidityUnit}`
+    );
+    console.log(
+      `   End humidity: ${completedRun.endHumidityReading} ${completedRun.humidityUnit}`
+    );
+    console.log(
+      `   Start temperature: ${completedRun.startTemperatureReading} ${completedRun.temperatureUnit}`
+    );
+    console.log(
+      `   End temperature: ${completedRun.endTemperatureReading} ${completedRun.temperatureUnit}`
     );
   } else {
     console.log("❌ Saga was not completed properly!");

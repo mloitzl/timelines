@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<52f800367cb43cfbac3091d173aa5913>>
+ * @generated SignedSource<<0c0eb7bd1a57c7864b7f8c6baf40b727>>
  * @lightSyntaxTransform
  * @nogrep
  */
@@ -16,18 +16,24 @@ export type DehumidifierRunListSubscription$data = {
     readonly duration: number | null | undefined;
     readonly endEnergyReading: number | null | undefined;
     readonly endEventId: string | null | undefined;
+    readonly endHumidityReading: number | null | undefined;
+    readonly endTemperatureReading: number | null | undefined;
     readonly endTime: string | null | undefined;
     readonly energyConsumed: number | null | undefined;
     readonly energyUnit: string;
     readonly entityId: string;
     readonly errorMessage: string | null | undefined;
     readonly humidityThreshold: number | null | undefined;
+    readonly humidityUnit: string | null | undefined;
     readonly id: string;
     readonly startEnergyReading: number;
     readonly startEventId: string;
+    readonly startHumidityReading: number | null | undefined;
+    readonly startTemperatureReading: number | null | undefined;
     readonly startTime: string;
     readonly startedBy: string;
     readonly status: string;
+    readonly temperatureUnit: string | null | undefined;
     readonly updatedAt: string;
   };
 };
@@ -120,6 +126,48 @@ var v0 = [
         "alias": null,
         "args": null,
         "kind": "ScalarField",
+        "name": "startHumidityReading",
+        "storageKey": null
+      },
+      {
+        "alias": null,
+        "args": null,
+        "kind": "ScalarField",
+        "name": "endHumidityReading",
+        "storageKey": null
+      },
+      {
+        "alias": null,
+        "args": null,
+        "kind": "ScalarField",
+        "name": "humidityUnit",
+        "storageKey": null
+      },
+      {
+        "alias": null,
+        "args": null,
+        "kind": "ScalarField",
+        "name": "startTemperatureReading",
+        "storageKey": null
+      },
+      {
+        "alias": null,
+        "args": null,
+        "kind": "ScalarField",
+        "name": "endTemperatureReading",
+        "storageKey": null
+      },
+      {
+        "alias": null,
+        "args": null,
+        "kind": "ScalarField",
+        "name": "temperatureUnit",
+        "storageKey": null
+      },
+      {
+        "alias": null,
+        "args": null,
+        "kind": "ScalarField",
         "name": "startedBy",
         "storageKey": null
       },
@@ -187,16 +235,16 @@ return {
     "selections": (v0/*: any*/)
   },
   "params": {
-    "cacheID": "ed8b9a6fd0b14458bcd795af7395bc5e",
+    "cacheID": "39ab59ef7b9fc8ff9279ac822e2db693",
     "id": null,
     "metadata": {},
     "name": "DehumidifierRunListSubscription",
     "operationKind": "subscription",
-    "text": "subscription DehumidifierRunListSubscription {\n  dehumidifierRunChanged {\n    id\n    entityId\n    status\n    startTime\n    endTime\n    duration\n    startEnergyReading\n    endEnergyReading\n    energyConsumed\n    energyUnit\n    startedBy\n    humidityThreshold\n    startEventId\n    endEventId\n    errorMessage\n    createdAt\n    updatedAt\n  }\n}\n"
+    "text": "subscription DehumidifierRunListSubscription {\n  dehumidifierRunChanged {\n    id\n    entityId\n    status\n    startTime\n    endTime\n    duration\n    startEnergyReading\n    endEnergyReading\n    energyConsumed\n    energyUnit\n    startHumidityReading\n    endHumidityReading\n    humidityUnit\n    startTemperatureReading\n    endTemperatureReading\n    temperatureUnit\n    startedBy\n    humidityThreshold\n    startEventId\n    endEventId\n    errorMessage\n    createdAt\n    updatedAt\n  }\n}\n"
   }
 };
 })();
 
-(node as any).hash = "1cf7ce8184d0818312ea2d87aecc84fe";
+(node as any).hash = "1142470c9cc0504dbfee7f7cd6a2ec5d";
 
 export default node;

@@ -17,6 +17,12 @@ export const DehumidifierRunListQueryTag = graphql`
       endEnergyReading
       energyConsumed
       energyUnit
+      startHumidityReading
+      endHumidityReading
+      humidityUnit
+      startTemperatureReading
+      endTemperatureReading
+      temperatureUnit
       startedBy
       humidityThreshold
       startEventId
@@ -41,6 +47,12 @@ const DehumidifierRunChangedSubscription = graphql`
       endEnergyReading
       energyConsumed
       energyUnit
+      startHumidityReading
+      endHumidityReading
+      humidityUnit
+      startTemperatureReading
+      endTemperatureReading
+      temperatureUnit
       startedBy
       humidityThreshold
       startEventId
@@ -88,17 +100,17 @@ function formatRelativeTime(timestamp: string): string {
   }
 }
 
-
 function getStartedByIcon(startedBy: string): string {
   return startedBy === "automation" ? "🤖" : "👤";
 }
 
 export function DehumidifierRunList() {
-  const [currentTime, setCurrentTime] = useState(new Date());
+  const [, setCurrentTime] = useState(new Date());
 
   // Update current time every 10 seconds for running durations
   useEffect(() => {
     const interval = setInterval(() => {
+      // Force re-render to update running durations
       setCurrentTime(new Date());
     }, 10000);
     return () => clearInterval(interval);
@@ -137,7 +149,30 @@ export function DehumidifierRunList() {
         );
 
         if (existingIndex >= 0) {
-          runs[existingIndex] = changedRun;
+          // Merge the updated fields into the existing record instead of replacing it
+          const existingRun = runs[existingIndex];
+          if (existingRun) {
+            // Copy all fields from the changed run to the existing run
+            const fieldsToUpdate = [
+              "status",
+              "endTime",
+              "duration",
+              "endEnergyReading",
+              "energyConsumed",
+              "endHumidityReading",
+              "endTemperatureReading",
+              "endEventId",
+              "errorMessage",
+              "updatedAt",
+            ];
+
+            fieldsToUpdate.forEach((field) => {
+              const value = changedRun.getValue(field);
+              if (value !== undefined) {
+                existingRun.setValue(value, field);
+              }
+            });
+          }
         } else {
           // Add new run at the beginning (newest first)
           runs.unshift(changedRun);
@@ -206,13 +241,76 @@ export function DehumidifierRunList() {
                     </div>
                   </div>
 
-                  {run.status === "finished" && run.energyConsumed !== null ? (
-                    <div className="run-detail-item">
-                      <div className="run-detail-label">Energy Consumed</div>
-                      <div className="run-detail-value energy">
-                        {run.energyConsumed.toFixed(6)} {run.energyUnit}
+                  {run.status === "finished" &&
+                  run.energyConsumed !== null &&
+                  run.energyConsumed !== undefined ? (
+                    <>
+                      <div className="run-detail-item">
+                        <div className="run-detail-label">Energy Consumed</div>
+                        <div className="run-detail-value energy">
+                          {run.energyConsumed.toFixed(6)} {run.energyUnit}
+                        </div>
                       </div>
-                    </div>
+
+                      {/* Show humidity and temperature deltas for completed runs */}
+                      {run.startHumidityReading !== null &&
+                        run.startHumidityReading !== undefined &&
+                        run.endHumidityReading !== null &&
+                        run.endHumidityReading !== undefined && (
+                          <div className="run-detail-item">
+                            <div className="run-detail-label">
+                              Humidity Change
+                            </div>
+                            <div className="run-detail-value humidity">
+                              {run.startHumidityReading.toFixed(1)} →{" "}
+                              {run.endHumidityReading.toFixed(1)}{" "}
+                              {run.humidityUnit || "%"}
+                              <span className="delta-value">
+                                (
+                                {run.endHumidityReading -
+                                  run.startHumidityReading >
+                                0
+                                  ? "+"
+                                  : ""}
+                                {(
+                                  run.endHumidityReading -
+                                  run.startHumidityReading
+                                ).toFixed(1)}
+                                )
+                              </span>
+                            </div>
+                          </div>
+                        )}
+
+                      {run.startTemperatureReading !== null &&
+                        run.startTemperatureReading !== undefined &&
+                        run.endTemperatureReading !== null &&
+                        run.endTemperatureReading !== undefined && (
+                          <div className="run-detail-item">
+                            <div className="run-detail-label">
+                              Temperature Change
+                            </div>
+                            <div className="run-detail-value temperature">
+                              {run.startTemperatureReading.toFixed(1)} →{" "}
+                              {run.endTemperatureReading.toFixed(1)}{" "}
+                              {run.temperatureUnit || "°C"}
+                              <span className="delta-value">
+                                (
+                                {run.endTemperatureReading -
+                                  run.startTemperatureReading >
+                                0
+                                  ? "+"
+                                  : ""}
+                                {(
+                                  run.endTemperatureReading -
+                                  run.startTemperatureReading
+                                ).toFixed(1)}
+                                )
+                              </span>
+                            </div>
+                          </div>
+                        )}
+                    </>
                   ) : (
                     <div className="run-detail-item">
                       <div className="run-detail-label">Energy Reading</div>
@@ -221,6 +319,35 @@ export function DehumidifierRunList() {
                       </div>
                     </div>
                   )}
+
+                  {/* Show starting humidity and temperature for running dehumidifiers */}
+                  {run.status === "running" &&
+                    run.startHumidityReading !== null &&
+                    run.startHumidityReading !== undefined && (
+                      <div className="run-detail-item">
+                        <div className="run-detail-label">
+                          Starting Humidity
+                        </div>
+                        <div className="run-detail-value humidity">
+                          {run.startHumidityReading.toFixed(1)}{" "}
+                          {run.humidityUnit || "%"}
+                        </div>
+                      </div>
+                    )}
+
+                  {run.status === "running" &&
+                    run.startTemperatureReading !== null &&
+                    run.startTemperatureReading !== undefined && (
+                      <div className="run-detail-item">
+                        <div className="run-detail-label">
+                          Starting Temperature
+                        </div>
+                        <div className="run-detail-value temperature">
+                          {run.startTemperatureReading.toFixed(1)}{" "}
+                          {run.temperatureUnit || "°C"}
+                        </div>
+                      </div>
+                    )}
                 </div>
 
                 {run.humidityThreshold && (

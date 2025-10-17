@@ -577,6 +577,22 @@
   font-family: 'Fira Code', 'Courier New', monospace;
 }
 
+.run-detail-value.humidity {
+  color: #60a5fa;
+  font-family: 'Fira Code', 'Courier New', monospace;
+}
+
+.run-detail-value.temperature {
+  color: #f97316;
+  font-family: 'Fira Code', 'Courier New', monospace;
+}
+
+.delta-value {
+  font-size: 0.75rem;
+  opacity: 0.8;
+  margin-left: 0.5rem;
+  font-weight: 500;
+}
 .run-threshold {
   margin-top: 0.75rem;
   padding: 0.75rem;

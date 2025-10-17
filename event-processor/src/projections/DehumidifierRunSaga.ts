@@ -13,6 +13,10 @@ export class DehumidifierRunSaga implements IProjection {
     const fromState = payload.from_state;
     const energyReading = payload.energy_reading;
     const energyUnit = payload.energy_unit || "kWh";
+    const humidityReading = payload.humidity_reading;
+    const humidityUnit = payload.humidity_unit || "%";
+    const temperatureReading = payload.temperature_reading;
+    const temperatureUnit = payload.temperature_unit || "°C";
 
     if (!entityId || !toState) {
       console.warn(
@@ -27,9 +31,27 @@ export class DehumidifierRunSaga implements IProjection {
     }
 
     if (toState === "on" && fromState === "off") {
-      await this.startSaga(event, payload, energyReading, energyUnit);
+      await this.startSaga(
+        event,
+        payload,
+        energyReading,
+        energyUnit,
+        humidityReading,
+        humidityUnit,
+        temperatureReading,
+        temperatureUnit
+      );
     } else if (toState === "off" && fromState === "on") {
-      await this.endSaga(event, payload, energyReading, energyUnit);
+      await this.endSaga(
+        event,
+        payload,
+        energyReading,
+        energyUnit,
+        humidityReading,
+        humidityUnit,
+        temperatureReading,
+        temperatureUnit
+      );
     }
   }
 
@@ -37,7 +59,11 @@ export class DehumidifierRunSaga implements IProjection {
     event: ProcessedEvent,
     payload: any,
     energyReading: number,
-    energyUnit: string
+    energyUnit: string,
+    humidityReading: number,
+    humidityUnit: string,
+    temperatureReading: number,
+    temperatureUnit: string
   ): Promise<void> {
     // Check if there's already a running saga for this entity
     const existingRun = await DehumidifierRun.findOne({
@@ -71,6 +97,10 @@ export class DehumidifierRunSaga implements IProjection {
       startTime: event.timestamp,
       startEnergyReading: energyReading,
       energyUnit: energyUnit,
+      startHumidityReading: humidityReading,
+      humidityUnit: humidityUnit,
+      startTemperatureReading: temperatureReading,
+      temperatureUnit: temperatureUnit,
       startedBy: startedBy,
       humidityThreshold: humidityThreshold,
       startEventId: event._id,
@@ -87,7 +117,11 @@ export class DehumidifierRunSaga implements IProjection {
     event: ProcessedEvent,
     payload: any,
     energyReading: number,
-    energyUnit: string
+    energyUnit: string,
+    humidityReading: number,
+    humidityUnit: string,
+    temperatureReading: number,
+    temperatureUnit: string
   ): Promise<void> {
     // Find the running saga for this entity
     const runningSaga = await DehumidifierRun.findOne({
@@ -117,6 +151,8 @@ export class DehumidifierRunSaga implements IProjection {
       duration: duration,
       endEnergyReading: energyReading,
       energyConsumed: energyConsumed,
+      endHumidityReading: humidityReading,
+      endTemperatureReading: temperatureReading,
       endEventId: event._id,
     });
 
@@ -125,7 +161,9 @@ export class DehumidifierRunSaga implements IProjection {
         payload.entity_id
       }, duration: ${Math.round(
         duration / 1000
-      )}s, energy: ${energyConsumed.toFixed(6)} ${energyUnit}`
+      )}s, energy: ${energyConsumed.toFixed(
+        6
+      )} ${energyUnit}, humidity: ${humidityReading}${humidityUnit}, temp: ${temperatureReading}${temperatureUnit}`
     );
   }
 

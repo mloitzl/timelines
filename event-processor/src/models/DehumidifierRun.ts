@@ -49,6 +49,32 @@ const dehumidifierRunSchema = new mongoose.Schema(
       type: Number,
       required: false,
     },
+    startHumidityReading: {
+      type: Number,
+      required: false,
+    },
+    endHumidityReading: {
+      type: Number,
+      required: false,
+    },
+    humidityUnit: {
+      type: String,
+      required: false,
+      default: "%",
+    },
+    startTemperatureReading: {
+      type: Number,
+      required: false,
+    },
+    endTemperatureReading: {
+      type: Number,
+      required: false,
+    },
+    temperatureUnit: {
+      type: String,
+      required: false,
+      default: "°C",
+    },
     startEventId: {
       type: String,
       required: true,
