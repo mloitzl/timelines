@@ -205,182 +205,198 @@ export function DehumidifierRunList() {
           <p>No dehumidifier runs yet.</p>
         </div>
       ) : (
-        <div className="dehumidifier-runs-container">
-          {runs.map((run) => {
+        <div className="timeline-container">
+          {runs.map((run, index) => {
             if (!run) return null;
 
             const isRunning = run.status === "running";
             const duration = isRunning
               ? new Date().getTime() - new Date(run.startTime).getTime()
               : run.duration;
+            const isLast = index === runs.length - 1;
 
             return (
-              <div
-                key={run.id}
-                className={`dehumidifier-run-card status-${run.status}`}
-              >
-                <div className="run-header">
-                  <div className="run-status-section">
-                    <span className="run-icon">
-                      {getStartedByIcon(run.startedBy)}
-                    </span>
-                    <span className={`run-status-badge ${run.status}`}>
-                      {run.status.toUpperCase()}
-                    </span>
+              <div key={run.id} className="timeline-item">
+                <div className="timeline-marker">
+                  <div className={`timeline-avatar status-${run.status}`}>
+                    {getStartedByIcon(run.startedBy)}
                   </div>
-                  <div className="run-time">
-                    {formatRelativeTime(run.startTime)}
-                  </div>
+                  {!isLast && <div className="timeline-line"></div>}
                 </div>
 
-                <div className="run-details">
-                  <div className="run-detail-item">
-                    <div className="run-detail-label">Duration</div>
-                    <div className="run-detail-value duration">
-                      {formatDuration(duration)}
+                <div className="timeline-content">
+                  <div className="timeline-header">
+                    <div className="timeline-title">
+                      <span className="timeline-action">
+                        {run.status === "running" ? "Started" : "Finished"}{" "}
+                        dehumidifier run
+                      </span>
+                      <span className={`timeline-status status-${run.status}`}>
+                        {run.status === "running" ? "RUNNING" : "FINISHED"}
+                      </span>
+                    </div>
+                    <div className="timeline-time">
+                      {formatRelativeTime(run.startTime)}
                     </div>
                   </div>
 
-                  {run.status === "finished" &&
-                  run.energyConsumed !== null &&
-                  run.energyConsumed !== undefined ? (
-                    <>
-                      <div className="run-detail-item">
-                        <div className="run-detail-label">Energy Consumed</div>
-                        <div className="run-detail-value energy">
-                          {run.energyConsumed.toFixed(6)} {run.energyUnit}
-                        </div>
+                  <div className="timeline-body">
+                    <div className="run-metrics">
+                      <div className="metric">
+                        <span className="metric-label">Duration</span>
+                        <span className="metric-value duration">
+                          {formatDuration(duration)}
+                        </span>
                       </div>
 
-                      {/* Show humidity and temperature deltas for completed runs */}
-                      {run.startHumidityReading !== null &&
-                        run.startHumidityReading !== undefined &&
-                        run.endHumidityReading !== null &&
-                        run.endHumidityReading !== undefined && (
-                          <div className="run-detail-item">
-                            <div className="run-detail-label">
-                              Humidity Change
-                            </div>
-                            <div className="run-detail-value humidity">
-                              {run.startHumidityReading.toFixed(1)} →{" "}
-                              {run.endHumidityReading.toFixed(1)}{" "}
+                      {run.status === "finished" &&
+                      run.energyConsumed !== null &&
+                      run.energyConsumed !== undefined ? (
+                        <>
+                          <div className="metric">
+                            <span className="metric-label">
+                              Energy Consumed
+                            </span>
+                            <span className="metric-value energy">
+                              {run.energyConsumed.toFixed(6)} {run.energyUnit}
+                            </span>
+                          </div>
+
+                          {/* Show humidity and temperature deltas for completed runs */}
+                          {run.startHumidityReading !== null &&
+                            run.startHumidityReading !== undefined &&
+                            run.endHumidityReading !== null &&
+                            run.endHumidityReading !== undefined && (
+                              <div className="metric">
+                                <span className="metric-label">
+                                  Humidity Change
+                                </span>
+                                <span className="metric-value humidity">
+                                  {run.startHumidityReading.toFixed(1)} →{" "}
+                                  {run.endHumidityReading.toFixed(1)}{" "}
+                                  {run.humidityUnit || "%"}
+                                  <span className="delta">
+                                    (
+                                    {run.endHumidityReading -
+                                      run.startHumidityReading >
+                                    0
+                                      ? "+"
+                                      : ""}
+                                    {(
+                                      run.endHumidityReading -
+                                      run.startHumidityReading
+                                    ).toFixed(1)}
+                                    )
+                                  </span>
+                                </span>
+                              </div>
+                            )}
+
+                          {run.startTemperatureReading !== null &&
+                            run.startTemperatureReading !== undefined &&
+                            run.endTemperatureReading !== null &&
+                            run.endTemperatureReading !== undefined && (
+                              <div className="metric">
+                                <span className="metric-label">
+                                  Temperature Change
+                                </span>
+                                <span className="metric-value temperature">
+                                  {run.startTemperatureReading.toFixed(1)} →{" "}
+                                  {run.endTemperatureReading.toFixed(1)}{" "}
+                                  {run.temperatureUnit || "°C"}
+                                  <span className="delta">
+                                    (
+                                    {run.endTemperatureReading -
+                                      run.startTemperatureReading >
+                                    0
+                                      ? "+"
+                                      : ""}
+                                    {(
+                                      run.endTemperatureReading -
+                                      run.startTemperatureReading
+                                    ).toFixed(1)}
+                                    )
+                                  </span>
+                                </span>
+                              </div>
+                            )}
+                        </>
+                      ) : (
+                        <div className="metric">
+                          <span className="metric-label">Energy Reading</span>
+                          <span className="metric-value energy">
+                            {run.startEnergyReading.toFixed(6)} {run.energyUnit}
+                          </span>
+                        </div>
+                      )}
+
+                      {/* Show starting humidity and temperature for running dehumidifiers */}
+                      {run.status === "running" &&
+                        run.startHumidityReading !== null &&
+                        run.startHumidityReading !== undefined && (
+                          <div className="metric">
+                            <span className="metric-label">
+                              Starting Humidity
+                            </span>
+                            <span className="metric-value humidity">
+                              {run.startHumidityReading.toFixed(1)}{" "}
                               {run.humidityUnit || "%"}
-                              <span className="delta-value">
-                                (
-                                {run.endHumidityReading -
-                                  run.startHumidityReading >
-                                0
-                                  ? "+"
-                                  : ""}
-                                {(
-                                  run.endHumidityReading -
-                                  run.startHumidityReading
-                                ).toFixed(1)}
-                                )
-                              </span>
-                            </div>
+                            </span>
                           </div>
                         )}
 
-                      {run.startTemperatureReading !== null &&
-                        run.startTemperatureReading !== undefined &&
-                        run.endTemperatureReading !== null &&
-                        run.endTemperatureReading !== undefined && (
-                          <div className="run-detail-item">
-                            <div className="run-detail-label">
-                              Temperature Change
-                            </div>
-                            <div className="run-detail-value temperature">
-                              {run.startTemperatureReading.toFixed(1)} →{" "}
-                              {run.endTemperatureReading.toFixed(1)}{" "}
+                      {run.status === "running" &&
+                        run.startTemperatureReading !== null &&
+                        run.startTemperatureReading !== undefined && (
+                          <div className="metric">
+                            <span className="metric-label">
+                              Starting Temperature
+                            </span>
+                            <span className="metric-value temperature">
+                              {run.startTemperatureReading.toFixed(1)}{" "}
                               {run.temperatureUnit || "°C"}
-                              <span className="delta-value">
-                                (
-                                {run.endTemperatureReading -
-                                  run.startTemperatureReading >
-                                0
-                                  ? "+"
-                                  : ""}
-                                {(
-                                  run.endTemperatureReading -
-                                  run.startTemperatureReading
-                                ).toFixed(1)}
-                                )
-                              </span>
-                            </div>
+                            </span>
                           </div>
                         )}
-                    </>
-                  ) : (
-                    <div className="run-detail-item">
-                      <div className="run-detail-label">Energy Reading</div>
-                      <div className="run-detail-value energy">
-                        {run.startEnergyReading.toFixed(6)} {run.energyUnit}
-                      </div>
                     </div>
-                  )}
 
-                  {/* Show starting humidity and temperature for running dehumidifiers */}
-                  {run.status === "running" &&
-                    run.startHumidityReading !== null &&
-                    run.startHumidityReading !== undefined && (
-                      <div className="run-detail-item">
-                        <div className="run-detail-label">
-                          Starting Humidity
-                        </div>
-                        <div className="run-detail-value humidity">
-                          {run.startHumidityReading.toFixed(1)}{" "}
-                          {run.humidityUnit || "%"}
+                    {run.humidityThreshold && (
+                      <div className="run-details">
+                        <div className="detail-item">
+                          <span className="detail-label">
+                            Humidity Threshold
+                          </span>
+                          <span className="detail-value">
+                            {run.humidityThreshold}%
+                          </span>
                         </div>
                       </div>
                     )}
 
-                  {run.status === "running" &&
-                    run.startTemperatureReading !== null &&
-                    run.startTemperatureReading !== undefined && (
-                      <div className="run-detail-item">
-                        <div className="run-detail-label">
-                          Starting Temperature
-                        </div>
-                        <div className="run-detail-value temperature">
-                          {run.startTemperatureReading.toFixed(1)}{" "}
-                          {run.temperatureUnit || "°C"}
-                        </div>
+                    {run.errorMessage && (
+                      <div className="error-message">
+                        <strong>Error:</strong> {run.errorMessage}
                       </div>
                     )}
-                </div>
 
-                {run.humidityThreshold && (
-                  <div className="run-threshold">
-                    <div className="run-threshold-label">
-                      Humidity Threshold
-                    </div>
-                    <div className="run-threshold-value">
-                      {run.humidityThreshold}%
-                    </div>
-                  </div>
-                )}
-
-                {run.errorMessage && (
-                  <div className="run-error">
-                    <strong>Error:</strong> {run.errorMessage}
-                  </div>
-                )}
-
-                <div className="run-footer">
-                  <div className="run-footer-item">
-                    <span>Started:</span>
-                    <span>{new Date(run.startTime).toLocaleString()}</span>
-                  </div>
-                  {run.endTime && (
-                    <>
-                      <span className="run-footer-separator">•</span>
-                      <div className="run-footer-item">
-                        <span>Ended:</span>
-                        <span>{new Date(run.endTime).toLocaleString()}</span>
+                    <div className="timeline-footer">
+                      <div className="footer-item">
+                        <span>Started:</span>
+                        <span>{new Date(run.startTime).toLocaleString()}</span>
                       </div>
-                    </>
-                  )}
+                      {run.endTime && (
+                        <>
+                          <span className="footer-separator">•</span>
+                          <div className="footer-item">
+                            <span>Ended:</span>
+                            <span>
+                              {new Date(run.endTime).toLocaleString()}
+                            </span>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  </div>
                 </div>
               </div>
             );
