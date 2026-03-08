@@ -77,12 +77,17 @@ async function startServer() {
 
   await server.start();
 
-  app.use(cors({
-    origin: (process.env.FRONTEND_URL ?? 'http://localhost:5173').split(',').map(s => s.trim()),
+  const allowedOrigins = (process.env.FRONTEND_URL ?? 'http://localhost:5173')
+    .split(',')
+    .map(s => s.trim());
+
+  const corsOptions: cors.CorsOptions = {
+    origin: allowedOrigins,
     allowedHeaders: ['content-type', 'newrelic', 'traceparent', 'tracestate'],
-  }));
+  };
+
   app.use(express.json());
-  app.use("/graphql", expressMiddleware(server));
+  app.use("/graphql", cors<cors.CorsRequest>(corsOptions), expressMiddleware(server));
 
   const PORT = 4000;
   httpServer.listen(PORT, () => {
