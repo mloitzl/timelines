@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import { ChangeStreamInsertDocument } from "mongodb";
+import { context, propagation, trace, SpanKind, SpanStatusCode } from "@opentelemetry/api";
 import { IProjection, ProcessedEvent } from "./types";
 import { Event } from "./models/Event";
 
@@ -48,6 +49,7 @@ export class EventProcessor {
             eventType: event.eventType,
             timestamp: event.timestamp,
             payload: event.payload,
+            traceContext: event.traceContext,
           };
 
           await this.processEvent(processedEvent);
@@ -70,40 +72,63 @@ export class EventProcessor {
   }
 
   private async processEvent(event: ProcessedEvent): Promise<void> {
-    console.log(
-      `[EventProcessor] Processing event: ${event.eventType} (${event._id})`
-    );
+    const tracer = trace.getTracer('event-processor');
 
-    // Find all projections interested in this event type
-    const interestedProjections = this.projections.filter(
-      (projection) =>
-        projection.eventTypes.includes(event.eventType) ||
-        projection.eventTypes.includes("*") // Allow wildcard
-    );
-
-    if (interestedProjections.length === 0) {
-      console.log(
-        `[EventProcessor] No projections registered for event type: ${event.eventType}`
-      );
-      return;
+    // Extract the producer's span context from the event document and link to it
+    const links = [];
+    if (event.traceContext) {
+      const carrier = { traceparent: event.traceContext };
+      const producerContext = propagation.extract(context.active(), carrier);
+      const producerSpanContext = trace.getSpanContext(producerContext);
+      if (producerSpanContext) {
+        links.push({ context: producerSpanContext });
+      }
     }
 
-    // Process event with all interested projections in parallel
-    const promises = interestedProjections.map(async (projection) => {
-      try {
-        await projection.process(event);
-      } catch (error) {
-        console.error(
-          `[EventProcessor] Error in projection ${projection.name}:`,
-          error
-        );
-        if (projection.onError) {
-          await projection.onError(error as Error, event);
-        }
-      }
+    const span = tracer.startSpan(`process ${event.eventType}`, {
+      kind: SpanKind.CONSUMER,
+      links,
+      attributes: {
+        'event.type': event.eventType,
+        'event.id': event._id,
+      },
     });
 
-    await Promise.all(promises);
+    await context.with(trace.setSpan(context.active(), span), async () => {
+      try {
+        console.log(`[EventProcessor] Processing event: ${event.eventType} (${event._id})`);
+
+        const interestedProjections = this.projections.filter(
+          (projection) =>
+            projection.eventTypes.includes(event.eventType) ||
+            projection.eventTypes.includes('*')
+        );
+
+        if (interestedProjections.length === 0) {
+          console.log(`[EventProcessor] No projections registered for event type: ${event.eventType}`);
+          return;
+        }
+
+        await Promise.all(
+          interestedProjections.map(async (projection) => {
+            try {
+              await projection.process(event);
+            } catch (error) {
+              console.error(`[EventProcessor] Error in projection ${projection.name}:`, error);
+              span.recordException(error as Error);
+              span.setStatus({ code: SpanStatusCode.ERROR });
+              if (projection.onError) {
+                await projection.onError(error as Error, event);
+              }
+            }
+          })
+        );
+
+        span.setStatus({ code: SpanStatusCode.OK });
+      } finally {
+        span.end();
+      }
+    });
   }
 
   async stop(): Promise<void> {

@@ -13,6 +13,10 @@ const eventSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.Mixed,
     required: false,
   },
+  traceContext: {
+    type: String,
+    required: false,
+  },
 });
 
 export const Event = mongoose.model("Event", eventSchema);

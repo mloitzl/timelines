@@ -17,6 +17,7 @@ on:
 jobs:
   build-and-publish:
     runs-on: self-hosted
+    environment: prod
 
     steps:
       - uses: actions/checkout@v4
@@ -41,5 +42,11 @@ jobs:
             ghcr.io/${{ github.repository_owner }}/timelines-frontend:latest
             ghcr.io/${{ github.repository_owner }}/timelines-frontend:${{ github.sha }}
           build-args: |
-            VITE_API_URL=http://werkstatt:4000/graphql
-            VITE_WS_URL=ws://werkstatt:4000/graphql
+            VITE_API_URL=${{ secrets.VITE_API_URL }}
+            VITE_WS_URL=${{ secrets.VITE_WS_URL }}
+            VITE_APP_ENV=${{ secrets.VITE_APP_ENV }}
+            VITE_BACKEND_URL=${{ secrets.VITE_BACKEND_URL }}
+            VITE_NEW_RELIC_ACCOUNT_ID=${{ secrets.VITE_NEW_RELIC_ACCOUNT_ID }}
+            VITE_NEW_RELIC_AGENT_ID=${{ secrets.VITE_NEW_RELIC_AGENT_ID }}
+            VITE_NEW_RELIC_APPLICATION_ID=${{ secrets.VITE_NEW_RELIC_APPLICATION_ID }}
+            VITE_NEW_RELIC_LICENSE_KEY=${{ secrets.VITE_NEW_RELIC_LICENSE_KEY }}

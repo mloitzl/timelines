@@ -11,6 +11,7 @@
     "relay": "relay-compiler"
   },
   "dependencies": {
+    "@newrelic/browser-agent": "^1.310.1",
     "@types/react-relay": "^18.2.1",
     "babel-plugin-relay": "^20.1.1",
     "graphql": "^16.11.0",

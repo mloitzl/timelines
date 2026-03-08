@@ -10,4 +10,5 @@ export interface ProcessedEvent {
   eventType: string;
   timestamp: string;
   payload: any;
+  traceContext?: string;
 }

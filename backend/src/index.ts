@@ -1,3 +1,4 @@
+import "./instrumentation";
 import { ApolloServer } from "@apollo/server";
 import { expressMiddleware } from "@apollo/server/express4";
 import { ApolloServerPluginDrainHttpServer } from "@apollo/server/plugin/drainHttpServer";
@@ -76,7 +77,10 @@ async function startServer() {
 
   await server.start();
 
-  app.use(cors());
+  app.use(cors({
+    origin: process.env.FRONTEND_URL ?? 'http://localhost:5173',
+    allowedHeaders: ['content-type', 'newrelic', 'traceparent', 'tracestate'],
+  }));
   app.use(express.json());
   app.use("/graphql", expressMiddleware(server));
 

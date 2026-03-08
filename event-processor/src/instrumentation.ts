@@ -1,0 +1,77 @@
+import { NodeSDK, metrics, resources } from '@opentelemetry/sdk-node'
+import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node'
+import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-proto'
+import { OTLPMetricExporter } from '@opentelemetry/exporter-metrics-otlp-proto'
+import { OTLPLogExporter } from '@opentelemetry/exporter-logs-otlp-proto'
+import { LoggerProvider, BatchLogRecordProcessor } from '@opentelemetry/sdk-logs'
+import { logs, SeverityNumber } from '@opentelemetry/api-logs'
+
+const OTLP_ENDPOINT = 'https://otlp.eu01.nr-data.net:4318'
+const API_KEY = process.env.NEW_RELIC_LICENSE_KEY ?? ''
+const headers = { 'api-key': API_KEY }
+
+const resource = resources.resourceFromAttributes({
+  'service.name': 'timelines-event-processor',
+  'service.version': '1.0.0',
+  'deployment.environment': process.env.APP_ENV ?? 'dev',
+})
+
+// --- Logs ---
+const loggerProvider = new LoggerProvider({
+  resource,
+  processors: [
+    new BatchLogRecordProcessor(
+      new OTLPLogExporter({ url: `${OTLP_ENDPOINT}/v1/logs`, headers })
+    ),
+  ],
+})
+logs.setGlobalLoggerProvider(loggerProvider)
+
+const otelLogger = loggerProvider.getLogger('console')
+
+const severities: Record<string, number> = {
+  log: SeverityNumber.INFO,
+  info: SeverityNumber.INFO,
+  warn: SeverityNumber.WARN,
+  error: SeverityNumber.ERROR,
+}
+
+for (const [method, severityNumber] of Object.entries(severities)) {
+  const original = (console as any)[method].bind(console)
+  ;(console as any)[method] = (...args: unknown[]) => {
+    original(...args)
+    otelLogger.emit({
+      severityNumber,
+      body: args.map(a => (typeof a === 'string' ? a : JSON.stringify(a))).join(' '),
+    })
+  }
+}
+
+// --- Traces + Metrics ---
+const sdk = new NodeSDK({
+  resource,
+  traceExporter: new OTLPTraceExporter({
+    url: `${OTLP_ENDPOINT}/v1/traces`,
+    headers,
+  }),
+  metricReader: new metrics.PeriodicExportingMetricReader({
+    exporter: new OTLPMetricExporter({
+      url: `${OTLP_ENDPOINT}/v1/metrics`,
+      headers,
+    }),
+    exportIntervalMillis: 30_000,
+  }),
+  instrumentations: [
+    getNodeAutoInstrumentations({
+      '@opentelemetry/instrumentation-fs': { enabled: false },
+    }),
+  ],
+})
+
+sdk.start()
+
+process.on('SIGTERM', () => {
+  Promise.all([sdk.shutdown(), loggerProvider.shutdown()]).finally(() =>
+    process.exit(0)
+  )
+})

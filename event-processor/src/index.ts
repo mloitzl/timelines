@@ -1,3 +1,4 @@
+import "./instrumentation";
 import mongoose from "mongoose";
 import { EventProcessor } from "./EventProcessor";
 import { DeviceStateProjection } from "./projections/DeviceStateProjection";

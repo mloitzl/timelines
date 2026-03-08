@@ -2,6 +2,7 @@ import { Event } from "./models/Event";
 import { DeviceState } from "./models/DeviceState";
 import { DehumidifierRun } from "./models/DehumidifierRun";
 import { PubSub } from "graphql-subscriptions";
+import { context, propagation } from "@opentelemetry/api";
 
 interface IngestEventArgs {
   eventType: string;
@@ -58,6 +59,11 @@ export const resolvers = {
         eventType,
         timestamp: new Date().toISOString(),
         payload: parsedPayload,
+        traceContext: (() => {
+          const carrier: Record<string, string> = {};
+          propagation.inject(context.active(), carrier);
+          return carrier.traceparent;
+        })(),
       });
       await event.save();
 
