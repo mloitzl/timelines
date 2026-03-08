@@ -7,6 +7,9 @@ services:
       - MONGODB_URI=mongodb://mongodb:27017/timelines?authSource=admin&replicaSet=rs0
       - MONGODB_USER=${MONGODB_USER}
       - MONGODB_PASS=${MONGODB_PASS}
+      - APP_ENV=prod
+      - FRONTEND_URL=${FRONTEND_URL}
+      - NEW_RELIC_LICENSE_KEY=${NEW_RELIC_LICENSE_KEY}
     depends_on:
       - mongodb-init
     restart: unless-stopped
@@ -69,6 +72,8 @@ services:
       - MONGODB_URI=mongodb://mongodb:27017/timelines?authSource=admin&replicaSet=rs0
       - MONGODB_USER=${MONGODB_USER}
       - MONGODB_PASS=${MONGODB_PASS}
+      - APP_ENV=prod
+      - NEW_RELIC_LICENSE_KEY=${NEW_RELIC_LICENSE_KEY}
     depends_on:
       - mongodb-init
       - timelines-backend
