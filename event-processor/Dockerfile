@@ -22,7 +22,7 @@ COPY event-processor/tsconfig.json ./event-processor/tsconfig.json
 COPY event-processor/src/ ./event-processor/src/
 
 # Build TypeScript
-RUN pnpm --filter event-processor run build
+RUN pnpm --filter timelines-event-processor run build
 
 # Production stage
 FROM base

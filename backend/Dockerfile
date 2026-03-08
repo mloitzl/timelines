@@ -23,7 +23,7 @@ COPY backend/src/ ./backend/src/
 COPY backend/schema.graphql ./backend/schema.graphql
 
 # Build TypeScript
-RUN pnpm --filter backend run build
+RUN pnpm --filter timelines-backend run build
 
 # Production stage
 FROM base
