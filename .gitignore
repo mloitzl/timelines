@@ -37,3 +37,6 @@ frontend/build/
 event-store/data/
 .mongodb
 .config/
+
+# Config folder and all subfolders
+config/
