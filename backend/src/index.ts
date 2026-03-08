@@ -78,7 +78,7 @@ async function startServer() {
   await server.start();
 
   app.use(cors({
-    origin: process.env.FRONTEND_URL ?? 'http://localhost:5173',
+    origin: (process.env.FRONTEND_URL ?? 'http://localhost:5173').split(',').map(s => s.trim()),
     allowedHeaders: ['content-type', 'newrelic', 'traceparent', 'tracestate'],
   }));
   app.use(express.json());
