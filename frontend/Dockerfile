@@ -3,16 +3,26 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-# Copy package files
-COPY package*.json ./
+# Install pnpm
+RUN corepack enable && corepack prepare pnpm@10.28.1 --activate
 
-# Install dependencies
-RUN npm ci
+# Copy workspace root files (needed for pnpm to resolve the lockfile)
+COPY pnpm-lock.yaml package.json pnpm-workspace.yaml ./
 
-# Copy source code
-COPY . .
+# Copy all workspace package.json files so pnpm can build the full dependency graph
+COPY frontend/package.json ./frontend/package.json
+COPY backend/package.json ./backend/package.json
+COPY event-processor/package.json ./event-processor/package.json
 
-# Build arguments for API URLs
+# Install all workspace dependencies
+# node-linker=hoisted ensures deps land in each package's node_modules (Docker compatible)
+RUN echo "node-linker=hoisted" > .npmrc && pnpm install --frozen-lockfile
+
+# Copy frontend source and schema
+COPY frontend/ ./frontend/
+COPY backend/schema.graphql ./frontend/schema.graphql
+
+# Build arguments
 ARG VITE_API_URL=http://localhost:4000/graphql
 ARG VITE_WS_URL=ws://localhost:4000/graphql
 ARG VITE_APP_ENV=dev
@@ -22,21 +32,14 @@ ARG VITE_NEW_RELIC_AGENT_ID
 ARG VITE_NEW_RELIC_APPLICATION_ID
 ARG VITE_NEW_RELIC_LICENSE_KEY
 
-# Build the application with environment variables
-RUN npm run build
+# Build the frontend package
+RUN pnpm --filter frontend run build
 
 # Production stage
 FROM nginx:alpine
 
-# Copy built files from builder stage
-COPY --from=builder /app/dist /usr/share/nginx/html
+COPY --from=builder /app/frontend/dist /usr/share/nginx/html
 
-# Copy nginx configuration (optional - if you need custom config)
-# COPY nginx.conf /etc/nginx/nginx.conf
-
-# Expose port 80
 EXPOSE 80
-
-# Start nginx
 CMD ["nginx", "-g", "daemon off;"]
 

@@ -30,7 +30,8 @@ jobs:
       - name: Build and push event-processor Docker image
         uses: docker/build-push-action@v4
         with:
-          context: ./event-processor
+          context: .
+          file: ./event-processor/Dockerfile
           push: true
           tags: |
             ghcr.io/${{ github.repository_owner }}/timelines-event-processor:latest
