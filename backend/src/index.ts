@@ -81,8 +81,18 @@ async function startServer() {
     .split(',')
     .map(s => s.trim());
 
+  console.log('[CORS] Allowed origins:', allowedOrigins);
+
   const corsOptions: cors.CorsOptions = {
-    origin: allowedOrigins,
+    origin: (origin, callback) => {
+      console.log(`[CORS] Request from origin: ${origin ?? '(no origin)'}`);
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        console.warn(`[CORS] Blocked origin: ${origin}`);
+        callback(new Error(`CORS: origin ${origin} not allowed`));
+      }
+    },
     allowedHeaders: ['content-type', 'newrelic', 'traceparent', 'tracestate'],
   };
 
