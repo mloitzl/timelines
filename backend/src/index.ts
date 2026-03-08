@@ -20,6 +20,13 @@ import { join } from "path";
 const typeDefs = readFileSync(join(__dirname, "../schema.graphql"), "utf8");
 
 async function startServer() {
+  const redacted = Object.fromEntries(
+    Object.entries(process.env).map(([k, v]) =>
+      /pass|secret|key|token|pat/i.test(k) ? [k, '***'] : [k, v]
+    )
+  );
+  console.log('[ENV]', JSON.stringify(redacted, null, 2));
+
   // Connect to MongoDB
   try {
     const mongoUri =
