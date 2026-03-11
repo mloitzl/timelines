@@ -6,9 +6,9 @@ import { OTLPLogExporter } from '@opentelemetry/exporter-logs-otlp-proto'
 import { LoggerProvider, BatchLogRecordProcessor } from '@opentelemetry/sdk-logs'
 import { logs, SeverityNumber } from '@opentelemetry/api-logs'
 
-const OTLP_ENDPOINT = 'https://otlp.eu01.nr-data.net:4318'
-const API_KEY = process.env.NEW_RELIC_LICENSE_KEY ?? ''
-const headers = { 'api-key': API_KEY }
+const OTLP_ENDPOINT = 'https://in-otel.logs.betterstack.com'
+const API_KEY = process.env.BETTERSTACK_SOURCE_TOKEN ?? ''
+const headers = { Authorization: `Bearer ${API_KEY}` }
 
 const resource = resources.resourceFromAttributes({
   'service.name': 'timelines-event-processor',

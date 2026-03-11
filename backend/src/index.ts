@@ -100,7 +100,7 @@ async function startServer() {
         callback(new Error(`CORS: origin ${origin} not allowed`));
       }
     },
-    allowedHeaders: ['content-type', 'newrelic', 'traceparent', 'tracestate'],
+    allowedHeaders: ['content-type', 'traceparent', 'tracestate'],
   };
 
   app.use(express.json());
