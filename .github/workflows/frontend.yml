@@ -47,7 +47,4 @@ jobs:
             VITE_WS_URL=${{ secrets.VITE_WS_URL }}
             VITE_APP_ENV=${{ secrets.VITE_APP_ENV }}
             VITE_BACKEND_URL=${{ secrets.VITE_BACKEND_URL }}
-            VITE_NEW_RELIC_ACCOUNT_ID=${{ secrets.VITE_NEW_RELIC_ACCOUNT_ID }}
-            VITE_NEW_RELIC_AGENT_ID=${{ secrets.VITE_NEW_RELIC_AGENT_ID }}
-            VITE_NEW_RELIC_APPLICATION_ID=${{ secrets.VITE_NEW_RELIC_APPLICATION_ID }}
-            VITE_NEW_RELIC_LICENSE_KEY=${{ secrets.VITE_NEW_RELIC_LICENSE_KEY }}
+            VITE_LOGROCKET_APP_ID=${{ secrets.VITE_LOGROCKET_APP_ID }}

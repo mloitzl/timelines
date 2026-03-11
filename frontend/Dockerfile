@@ -27,10 +27,7 @@ ARG VITE_API_URL=http://localhost:4000/graphql
 ARG VITE_WS_URL=ws://localhost:4000/graphql
 ARG VITE_APP_ENV=dev
 ARG VITE_BACKEND_URL=http://localhost:4000
-ARG VITE_NEW_RELIC_ACCOUNT_ID
-ARG VITE_NEW_RELIC_AGENT_ID
-ARG VITE_NEW_RELIC_APPLICATION_ID
-ARG VITE_NEW_RELIC_LICENSE_KEY
+ARG VITE_LOGROCKET_APP_ID
 
 # Build the frontend package
 RUN pnpm --filter frontend run build
